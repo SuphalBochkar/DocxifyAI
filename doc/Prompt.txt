@@ -1,0 +1,166 @@
+You have left out several important sections, including the Example Workflow, Technical Specifications, and the Sample Code Skeleton for the AI Agent. Therefore, I need you to thoroughly complete these sections, ensuring that the content is detailed, well-structured, and curated appropriately. Please do not shorten the content; instead, provide a comprehensive and descriptive approach while maintaining clear and organized structure.
+
+I recently joined a company called GoComet, and it has been a week since I started. We have an upcoming one-week hackathon, and I need to participate. The problem statement is related to existing products, and my team consists of three members: one handling the frontend, one working on the backend, and myself as the backend intern. This hackathon is specifically for the interns hired by the company, and we have two mentors assigned: one for backend and one for frontend. These mentors are experienced SDEs with extensive years of work in this field and at the company. I will be receiving the problem statement and will need to complete it. I’m seeking guidance on how to approach and build the project.
+
+Project Statement:
+    The task is to build an AI-based support agent for document reading, particularly when information is missed during extraction. The customer should be able to interact with the agent, specify which data was missed, and provide a method for retrieving that data.
+    Please refer to GoComet’s "Go Invoice" product, as it seems to align with the problem statement. I’ve also discussed this with my assigned mentor, who suggested breaking the problem into two main parts:
+    1. Document Upload and Parsing:
+        In this part, a document is uploaded, parsed using regex and other methods, and the text is extracted into a readable format, such as JSON. However, sometimes users may input incorrect details, causing the parser to fail and resulting in missing data. The customer should be able to tell the agent about the missing information.
+    2. AI-based Data Prediction:
+        Once data is identified as missing, AI will be used to predict the correct information based on the document. The AI will automatically identify and provide the missing details to ensure accuracy and completeness.
+    For the project, you don’t have to use all the technologies mentioned by the team. I plan to use Node.js for the backend.
+    I need a detailed plan outlining the steps I should take, along with the tasks I need to complete. How should I approach and build this project?
+
+GoComet Onboarding
+    👥 Team Size: 4 interns per team (5 teams in total) [BE/FE/QA] & 2 mentors
+    🕒 Duration: 8 Days
+    🎯 Objective: Build and launch a full-fledged SaaS product using no-code tools, custom backend logic (Ruby/Node.js), and AI tools to maximize efficiency.
+
+🚀 The Challenge
+    Each team must ideate, develop, and deploy a SaaS product that:
+    ✅ Solves a real business problem (after discussing with the product team).
+    ✅ Uses AI tools like ChatGPT, GitHub Copilot, and LangChain for coding, automation, and intelligence.
+    ✅ Uses no-code tools for UI, database, automation, and analytics.
+    ✅ Implements custom backend logic (Ruby or Node.js).
+    ✅ Has authentication, data storage, admin dashboard, analytics, and automation.
+    ✅ Is deployed and demonstrated live at the end of the assignment.
+
+📌 AI Tools & How to Use Them
+    AI Tool & Usage in the Assignment
+
+    ChatGPT / GPT-4: Generate code snippets, write documentation, debug errors, create test cases, and even brainstorm product features.
+    GitHub Copilot:  Auto-complete backend code in Ruby/Node.js, suggest API structures, and optimize performance.
+    LangChain:  Build AI-driven features like chatbots, data enrichment, or intelligent automation workflows.
+    Midjourney/DALL·E:  Create UI/UX mockups, generate icons, or enhance presentation slides with AI-generated images.
+    Make/Zapier: (AI Automations) Connect AI with no-code tools for smart automation (e.g.,auto-respond to emails, summarize data).
+    PostHog/Mixpanel with AI: Use AI-powered analytics to predict user behavior or trends in the app.
+
+📌 Assignment Scope
+🔹 Phase 1: Ideation & Business Understanding (Day 0-Day1)
+    ●  Meet with the Product Team (each team gets 1 hour).
+    ●  Define the business problem, target audience, and core features.
+    ●  Use ChatGPT/GPT-4 to refine problem statements & generate a project roadmap.
+    ●  Assign responsibilities within the team.
+    ●  Design wireframes and workflows.
+    ●  Mentors review and approve the plan before coding starts.
+🔹 Phase 2: Development Sprint (Day 2-4)
+🚀 Complete MVP in 3 days!
+    ●  Frontend: Use Webflow, Softr, Framer, or Bubble to build the UI, Can also build using React / Next.
+    ●  Backend:
+        ○  Use Firebase/Airtable/Xano for quick API setup.
+        ○  Implement custom logic using Node.js or Ruby (leveraging GitHub Copilot).
+    ●  AI-Powered Features:
+        ○  Implement ChatGPT APIs for smart automation/chatbots.
+        ○  Use LangChain for intelligent workflows.
+        ○  Automate repetitive tasks using AI.
+    ●  Automation & Integrations:
+        ○  Use Make (Integromat), Zapier, or n8n to connect services.
+        ○  Implement AI-powered auto-email responses, auto-summarization, or predictive insights.
+    ●  Analytics & Tracking:
+        ○  Integrate Google Analytics, Mixpanel, or PostHog.
+        ○  Use AI-driven insights to predict user behavior.
+        ○  Daily Standups with Mentors for feedback and problem-solving.
+🔹 Phase 3: Testing & Documentation (Day 5-6)
+    ●  Use ChatGPT for test case generation.
+    ●  Perform unit & integration testing (manual & AI-assisted).
+    ●  Write API documentation & architecture diagrams.
+    ●  Prepare a 5-min presentation & demo.
+🔹 Phase 4: Demo & Final Pitch (Day 7)
+    ●  Each team pitches their product with a live demo.
+    ●  The top 2 teams get a reward! 🏆
+
+🛠 Allowed Tech Stack & Tools
+No-Code/Low-Code:
+    ✅ Frontend: Webflow, Softr, Framer, Bubble
+    ✅ Backend: Firebase, Xano, Airtable
+    ✅ Automation: Make, Zapier, n8n
+    ✅ Analytics: Google Analytics, Mixpanel, PostHog
+AI-Powered Tools:
+    ✅ ChatGPT/GPT-4 – Code generation, automation, documentation, and debugging
+    ✅ GitHub Copilot – Autocomplete & optimize backend logic
+    ✅ LangChain – AI-powered automation & chatbots
+    ✅ DALL·E/Midjourney – UI/UX assets, presentations
+    ✅ AI in Analytics – PostHog/Mixpanel for AI-driven insights
+Custom Code (Mandatory):
+    ✅ Backend: Ruby (Rails), Node.js (Express, NestJS)
+    ✅ API Development & AI Integrations
+
+So The tech stack ill be using
+    Frontend: React
+    Backend: Node.js express, Mongodb
+    Analytics: PostHog
+    AI: ChatGPT, LangChain
+
+📌 Evaluation Criteria
+Teams will be evaluated based on the following parameters:
+    1.  Planning
+        a.  Scope
+        b.  Product understanding
+        c.  Communication
+        d.  Product Requirements Document (PRD)
+        e.  Acceptance cases
+        f.  HLD & LLD
+    2.  Developing Skills
+        a.  Architecture
+        b.  Code quality
+        c.  Coverage of automation test cases
+    3.  Impact Analysis
+        a.  Demo effectiveness
+        b.  Innovation
+        c.  Value delivered
+        d.  Documentation quality
+
+📌 What You’ll Learn
+    ✔ Collaboration: Work as a team under tight deadlines.
+    ✔ Tech Stack: Hands-on experience in Ruby, Node.js, no-code tools, & AI.
+    ✔ AI-Driven SaaS: Learn how to integrate AI for automation, chat, and insights.
+    ✔ Business Sense: Solve real-world problems with product-driven thinking.
+    ✔ Code Quality: Write clean, well-documented, testable code.
+    ✔ High-Pressure Execution: Deliver fast without compromising quality.
+    ✔ Winning as a Team: Compete, collaborate, and innovate!
+
+📅 Timeline & Milestones
+    ●  Day 1: Business discussions + Planning
+    ●  Day 2-4: Development Sprint (Daily mentor check-ins)
+    ●  Day 5-6: Testing + Documentation
+    ●  Day 7: Demo & Evaluation
+
+📌 Submission Requirements
+    ✅ Live Demo Link
+    ✅ API Documentation
+    ✅ Architecture Diagram
+    ✅ 5-Minute Pitch Video
+
+We are thrilled to announce GoComet’s Hackathon Competition – an exciting 7-day coding marathon designed to challenge your creativity, technical skills, and problem-solving abilities. 💡 This is your chance to collaborate with talented peers, innovate cutting-edge solutions, and showcase your tech expertise by building impactful projects. Get ready to transform ideas into reality and make a mark with your ingenuity! 🚀
+
+👥 Team Formation:
+     We’ve created 5 dynamic teams, each supported by 2 dedicated mentors (Backend & Frontend) to guide and collaborate with you throughout the journey.
+
+📌 Projects: Each team has been assigned a unique, impactful project that challenges you to think creatively, solve real-world problems, and showcase your skills.
+
+🔥 Timeline & Milestones: (Please refer to the attached detailed plan.)
+📅 Day 1:    27th-MAR: Business discussions + Planning
+⚙️ Day 2-4: 28th to 2nd APR - Development Sprint (Daily mentor check-ins)
+🔎 Day 5-6: 3rd APR to 4th APR Testing + Documentation
+🎯 Day 7:    7th APR Demo & Evaluation
+
+🏆 Exciting Rewards:
+🥇 1st Prize: ₹20,000
+🥈 2nd Prize: ₹10,000
+
+💻 This is your chance to build something exceptional, collaborate with your peers, and compete for glory. Let’s see who brings the most innovative and impactful solution to life!
+
+✨ Get ready to code, create, and conquer! ✨
+Best of luck to all the participants!
+
+Team 1
+
+Members
+MUKESH KUMAR - QA Engineer Intern
+SUPHAL BOCHKAR - Backend Intern
+Himanshi Nayak - Front End Intern
+
+Mentors
+Chetas - FE mentor
+Lakshya - BE mentor

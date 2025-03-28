@@ -1,0 +1,2050 @@
+# **Comprehensive Plan for Building the AI-Based Document Support Agent**
+
+---
+
+## **1. Project Overview**
+
+### **Problem Statement**
+- **Issue**: Traditional regex-based document parsing often fails when data is unstructured or entered incorrectly, resulting in incomplete data extraction.
+- **Solution**: Develop an AI-powered backend that not only extracts data but also intelligently interacts with users to fill in missing fields through a chat-based support interface.
+
+### **Target Audience**
+- Teams in logistics, finance, or any organization using document processing tools (similar to Go Invoice) who need accurate and complete data extraction.
+
+### **Core Features**
+- **Document Upload & Processing**: Accept PDFs or image files, extract text, and apply regex patterns.
+- **Missing Data Detection**: Identify which fields (e.g., invoice number, due date) are missing from the extracted data.
+- **AI Chat Interface**: Allow users to query and resolve missing data via an AI chatbot using GPT-4 and LangChain.
+- **Data Storage**: Store raw and processed data along with chat history using Firebase (Firestore and Storage).
+
+---
+
+## **2. Detailed Roadmap & Phases**
+
+### **Phase 1: Ideation & Business Understanding (Day 0 – Day 1)**
+
+1. **Business Meetings & Problem Definition**
+    - **Team Meeting**: Meet with the Product Team (1-hour session per team) to discuss challenges.
+    - **Define the Problem & Audience**: Clearly articulate the parsing challenges and the need for an interactive support agent.
+    - **Core Features**: List and agree on essential functionalities.
+    - **Wireframes & Workflows**:
+        - **Upload Screen**: Drag-and-drop interface for document submission.
+        - **Parsing Screen**: Display parsed JSON data with highlighted missing fields.
+        - **Chat Interface**: Enable a conversation flow for querying missing information.
+2. **Assign Responsibilities**
+    - **Backend Intern (You)**: Build document parsing, AI integration, and API endpoints.
+    - **Frontend Intern**: Develop the UI using no-code tools like Webflow or Softr.
+    - **QA Engineer Intern**: Design and execute test cases.
+    - **Mentors**: Provide technical guidance for both backend and frontend.
+3. **Mentor Review**
+    - Validate the proposed plan with your BE and FE mentors before starting development.
+
+---
+
+### **Phase 2: Development Sprint (Day 2 – Day 4)**
+
+### **Backend Development (Node.js)**
+
+1. **Tech Stack**
+    - **Language**: Node.js with Express.js.
+    - **Database & Storage**: Firebase (Firestore for data and Storage for documents).
+    - **AI Tools**: OpenAI GPT-4 integrated via LangChain.
+    - **Libraries**:
+        - `pdf-parse` for PDF text extraction.
+        - `tesseract.js` for OCR fallback if needed.
+2. **Key Modules**
+    - **Document Upload & Parsing**
+        - **Upload Endpoint**: Save files to Firebase Storage.
+        - **Parsing Logic**: Extract text using `pdf-parse` and apply regex patterns (e.g., `/INV-\d{4}-\d{3}/` for invoice numbers).
+        - **JSON Output**: Return structured data with a list of missing fields.
+    - **Missing Data Detection**
+        - Compare parsed JSON against expected fields such as invoice number, date, due date, total amount, and vendor name.
+        - Flag any missing fields for further review.
+    - **AI Chat Integration**
+        - **Workflow**:
+            - Merge document text with user query.
+            - Use a structured prompt template to instruct GPT-4 to locate missing data.
+        - **Prompt Example**:
+
+            ```
+            "Analyze this document: [DOCUMENT_TEXT]. The user reports that [MISSING_FIELD] is missing. Please extract the correct value and respond in JSON format: { "[MISSING_FIELD]": "value" }."
+
+            ```
+
+    - **API Endpoints**
+        - `POST /upload`: Handle file uploads.
+        - `POST /parse/:docId`: Parse the uploaded document and return JSON data along with missing fields.
+        - `POST /chat/:docId`: Process the user’s query to resolve missing fields and return AI-generated responses.
+3. **Automation & Productivity**
+    - Leverage GitHub Copilot for boilerplate code generation and rapid prototyping of Express.js routes.
+
+### **Frontend Integration**
+
+- **API Contracts**: Define clear interfaces for upload responses and chat interactions.
+- **Real-Time Updates**: Use Firebase for live updates when missing fields are resolved.
+
+---
+
+### **Phase 3: Testing & Documentation (Day 5 – Day 6)**
+
+1. **Testing**
+    - **Unit Testing**: Use Jest to verify regex extraction logic and AI response formats.
+    - **Integration Testing**: Conduct end-to-end tests covering the flow from document upload to chat resolution.
+    - **Edge Case Handling**: Test scenarios including corrupted files and handwritten text images.
+2. **Documentation**
+    - **API Documentation**: Generate using Swagger or Postman.
+    - **Architecture Diagrams**: Create visual diagrams outlining data flow from the user through the frontend, backend, and AI integration.
+    - **Test Case Documentation**: List and explain test scenarios and expected outcomes.
+    - **Presentation Prep**: Prepare a concise 5-minute demo script that highlights the product’s key features and innovations.
+
+---
+
+### **Phase 4: Demo & Pitch (Day 7)**
+
+- **Live Demo**
+    - Demonstrate a full workflow from document upload, parsing, and AI chat interaction.
+    - Show how the system accurately fills in missing fields.
+- **Pitch Structure**
+    - **Problem**: “40% of invoices have missing data due to parsing errors.”
+    - **Demo**: Walk through the upload → parse → chat sequence.
+    - **Innovation**: Emphasize the AI’s context-aware, human-like reading of documents.
+- **Rewards**: Focus on the uniqueness of your AI usage, technical execution, and overall product innovation.
+
+---
+
+## **3. Example Workflow**
+
+Below is a sample flow illustrating how a user interacts with the system:
+
+1. **Document Upload**
+    - **Command**:
+
+        ```bash
+        curl -X POST -F "file=@invoice.pdf" http://api/upload
+        ```
+
+    - **Response**:
+
+        ```json
+        { "docId": "abc123", "status": "uploaded" }
+        ```
+
+2. **Document Parsing**
+    - **Command**:
+
+        ```bash
+        curl http://api/parse/abc123
+        ```
+
+    - **Response**:
+
+        ```json
+        {
+          "invoice_number": "INV-2024-789",
+          "date": "2024-03-15",
+          "missing": ["due_date", "vendor_name"]
+        }
+        ```
+
+3. **AI Chat for Missing Data**
+    - **Command**:
+
+        ```bash
+        curl -X POST -H "Content-Type: application/json" -d '{ "query": "due_date is missing" }' http://api/chat/abc123
+        ```
+
+    - **Response**:
+
+        ```json
+        { "due_date": "2024-03-30" }
+        ```
+
+
+---
+
+## **4. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **5. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```jsx
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    // Save file to Firebase Storage and get a document ID
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    // Retrieve document text from Firebase
+    const docText = await getDocumentText(req.params.docId);
+    // Apply regex patterns for fields (example for invoice number)
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    // Add other field validations as needed...
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+
+    // Construct the prompt using document text and user query
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+
+    // Call OpenAI API with LangChain workflow (simplified here)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
+
+```
+
+### **Additional Notes on the Code**
+
+- **Error Handling**: Each endpoint includes try/catch blocks to manage errors gracefully.
+- **Services**: Helper functions like `getDocumentText`, `saveDocument`, and `saveParsedData` are assumed to handle Firebase interactions.
+- **AI Prompt Engineering**: The prompt provided to GPT-4 can be refined further based on test outcomes and mentor feedback.
+
+---
+
+## **6. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **7. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    .POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+
+---
+
+## **8. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **9. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```jsx
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    // Save file to Firebase Storage and get a document ID
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    // Retrieve document text from Firebase
+    const docText = await getDocumentText(req.params.docId);
+    // Apply regex patterns for fields (example for invoice number)
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    // Add other field validations as needed...
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+
+    // Construct the prompt using document text and user query
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+
+    // Call OpenAI API with LangChain workflow (simplified here)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
+
+```
+
+### **Additional Notes on the Code**
+
+- **Error Handling**: Each endpoint includes try/catch blocks to manage errors gracefully.
+- **Services**: Helper functions like `getDocumentText`, `saveDocument`, and `saveParsedData` are assumed to handle Firebase interactions.
+- **AI Prompt Engineering**: The prompt provided to GPT-4 can be refined further based on test outcomes and mentor feedback.
+
+---
+
+## **10. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **11. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    .POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+
+---
+
+## **12. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **13. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```jsx
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    // Save file to Firebase Storage and get a document ID
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    // Retrieve document text from Firebase
+    const docText = await getDocumentText(req.params.docId);
+    // Apply regex patterns for fields (example for invoice number)
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    // Add other field validations as needed...
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+
+    // Construct the prompt using document text and user query
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+
+    // Call OpenAI API with LangChain workflow (simplified here)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
+
+```
+
+### **Additional Notes on the Code**
+
+- **Error Handling**: Each endpoint includes try/catch blocks to manage errors gracefully.
+- **Services**: Helper functions like `getDocumentText`, `saveDocument`, and `saveParsedData` are assumed to handle Firebase interactions.
+- **AI Prompt Engineering**: The prompt provided to GPT-4 can be refined further based on test outcomes and mentor feedback.
+
+---
+
+## **14. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **15. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    .POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+
+---
+
+## **16. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **17. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```jsx
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    // Save file to Firebase Storage and get a document ID
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) ```json
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    // Retrieve document text from Firebase
+    const docText = await getDocumentText(req.params.docId);
+    // Apply regex patterns for fields (example for invoice number)
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    // Add other field validations as needed...
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+
+    // Construct the prompt using document text and user query
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+
+    // Call OpenAI API with LangChain workflow (simplified here)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
+```
+
+### **Additional Notes on the Code**
+
+- **Error Handling**: Each endpoint includes try/catch blocks to manage errors gracefully.
+- **Services**: Helper functions like `getDocumentText`, `saveDocument`, and `saveParsedData` are assumed to handle Firebase interactions.
+- **AI Prompt Engineering**: The prompt provided to GPT-4 can be refined further based on test outcomes and mentor feedback.
+
+---
+
+## **18. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **19. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    .POST /api/v1/documents/doc_abc123/query
+    Content-Type: application /json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+
+---
+
+## **20. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User ** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **21. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```jsx
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    // Save file to Firebase Storage and get a document ID
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    // Retrieve document text from Firebase
+    const docText = await getDocumentText(req.params.docId);
+    // Apply regex patterns for fields (example for invoice number)
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    // Add other field validations as needed...
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+
+    // Construct the prompt using document text and user query
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+
+    // Call OpenAI API with LangChain workflow (simplified here)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+ });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
+
+```
+
+### **Additional Notes on the Code**
+
+- **Error Handling**: Each endpoint includes try/catch blocks to manage errors gracefully.
+- **Services**: Helper functions like `getDocumentText`, `saveDocument`, and `saveParsedData` are assumed to handle Firebase interactions.
+- **AI Prompt Engineering**: The prompt provided to GPT-4 can be refined further based on test outcomes and mentor feedback.
+
+---
+
+## **22. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **23. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+
+---
+
+## **24. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User ** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **25. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```javascript
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    const docText = await getDocumentText(req.params.docId);
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
+```
+
+### **Additional Notes on the Code**
+
+- **Error Handling**: Each endpoint includes try/catch blocks to manage errors gracefully.
+- **Services**: Helper functions like `getDocumentText`, `saveDocument`, and `saveParsedData` are assumed to handle Firebase interactions.
+- **AI Prompt Engineering**: The prompt provided to GPT-4 can be refined further based on test outcomes and mentor feedback.
+
+---
+
+## **26. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- - **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **27. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+---
+
+## **28. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User ** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **29. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```javascript
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    const docText = await getDocumentText(req.params.docId);
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res .status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+
+    // Construct the prompt using document text and user query
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router; ### **30. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **31. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+---
+
+## **32. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User  ** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **33. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```javascript
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    const docText = await getDocumentText(req.params.docId);
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router; ### **34. Hackathon-Specific Considerations**
+
+### **Team & Mentorship**
+
+- **Team Composition**: 4 interns per team (Backend, Frontend, QA, plus an extra resource if needed).
+- **Mentorship**: Two dedicated mentors (one for frontend, one for backend) will guide you through daily check-ins and provide feedback.
+
+### **Timeline & Milestones**
+
+- **Day 1 (27th March)**: Business discussions, planning, and finalizing the project roadmap.
+- **Day 2-4 (28th March to 2nd April)**: Rapid development sprint with daily mentor check-ins.
+- **Day 5-6 (3rd to 4th April)**: Rigorous testing and thorough documentation.
+- **Day 7 (7th April)**: Live demo, pitch presentation, and evaluation.
+
+### **Submission Requirements**
+
+- **Live Demo Link**: Ensure the product is deployed and accessible.
+- **API Documentation**: Provide complete docs using Swagger/Postman.
+- **Architecture Diagram**: Clearly show how data flows from the UI through the backend to the AI integration.
+- **Pitch Video**: A 5-minute presentation outlining the problem, solution, and key innovations.
+
+### **Awards & Recognition**
+
+- **Best Product Award**: For innovation and overall product execution.
+- **Best AI Usage Award**: For the effective use of AI tools to enhance functionality.
+- **Best Technical Execution**: For leveraging the tech stack and ensuring robust performance.
+
+---
+
+## **35. Example Workflow with Data Flow**
+
+**Scenario**: Missing Invoice Number Recovery
+
+1. **Document Upload**
+
+    ```
+    POST /api/v1/documents
+    Content-Type: multipart/form-data
+
+    file=@invoice_123.pdf
+    ```
+
+    Response:
+
+    ```json
+    {
+      "document_id": "doc_abc123",
+      "status": "processing"
+    }
+    ```
+
+2. **Automated Parsing**
+
+    ```
+    GET /api/v1/documents/doc_abc123/status
+    ```
+
+    Response:
+
+    ```json
+    {
+      "extracted_data": {
+        "vendor": "Acme Corp",
+        "total_amount": "$1,234.56"
+      },
+      "missing_fields": ["invoice_number", "due_date"],
+      "validation_errors": []
+    }
+    ```
+
+3. **AI Interaction**
+
+    ```
+    POST /api/v1/documents/doc_abc123/query
+    Content-Type: application/json
+
+    {
+      "query": "The invoice number is missing. Can you find it in the document header?"
+    }
+    ```
+
+    Response:
+
+    ```json
+    {
+      "type": "field_suggestion",
+      "field": "invoice_number",
+      "value": "INV-2024-789",
+      "confidence": 0.92,
+      "source": "Page 1, Header Section",
+      "raw_text": "Invoice Number: INV-2024-789"
+    }
+    ```
+
+4. **Data Correction**
+
+    ```
+    PATCH /api/v1/documents/doc_abc123
+    Content-Type: application/json
+
+    {
+      "corrections": [{
+        "field": "invoice_number",
+        "value": "INV-2024-789"
+      }]
+    }
+    ```
+
+---
+
+## **36. Technical Specifications**
+
+### **Tech Stack**
+
+- **Backend**: Node.js with Express.js.
+- **Database & Storage**: Firebase (Firestore for data storage, Firebase Storage for document uploads).
+- **AI Integration**: OpenAI GPT-4 via LangChain.
+- **Libraries & Tools**:
+    - `pdf-parse` for extracting text from PDFs.
+    - `tesseract.js` for OCR on image files.
+    - **Testing**: Jest for unit and integration tests.
+    - **Documentation**: Swagger/Postman for API docs.
+
+### **Data Flow & Architecture**
+
+- **User  ** → **Web UI (e.g., Webflow)** → **Node.js Backend** → **Firebase Storage & Firestore**
+
+    → **OpenAI API (via LangChain)** → **Response to User**
+
+### **Error Handling**
+
+- **Parsing Errors**: If regex fails, the missing field is flagged.
+- **AI Integration**: Return error JSON if GPT-4 cannot find the missing value.
+- **File Issues**: Handle corrupted or non-readable documents gracefully by notifying the user.
+
+### **Performance Criteria**
+
+- **MVP**: Must parse at least five fields (invoice number, date, due date, total amount, vendor name).
+- **Response Time**: AI responses should be returned within 5 seconds.
+- **Scalability**: System must handle 100+ concurrent uploads.
+
+---
+
+## **37. Sample Code Skeleton for the AI Agent**
+
+Below is an example code skeleton for the key endpoints in your Node.js backend:
+
+```javascript
+// routes/document.js
+const express = require('express');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const { OpenAI } = require('openai');
+const { getDocumentText, saveDocument, saveParsedData } = require('../services/firebaseService');
+
+const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const openai = new OpenAI(process.env.OPENAI_KEY);
+
+// Endpoint: Upload Document
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const docId = await saveDocument(req.file);
+    res.json({ docId, status: 'uploaded' });
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
+
+// Endpoint: Parse Document
+router.post('/parse/:docId', async (req, res) => {
+  try {
+    const docText = await getDocumentText(req.params.docId);
+    const invoiceNumber = docText.match(/INV-\d{4}-\d{3}/)?.[0];
+    const missingFields = [];
+    if (!invoiceNumber) missingFields.push('invoice_number');
+    const parsedData = { invoice_number: invoiceNumber, missing: missingFields };
+    await saveParsedData(req.params.docId, parsedData);
+    res.json(parsedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Parsing failed', details: error.message });
+  }
+});
+
+// Endpoint: AI Chat for Missing Data
+router.post('/chat/:docId', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const docText = await getDocumentText(req.params.docId);
+    const prompt = `
+      Analyze the following document:
+      ${docText}
+
+      The user reports that "${query}" is missing.
+      Extract the correct value and respond in JSON format:
+      { "field": "value" }
+    `;
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const aiOutput = JSON.parse(response.choices[0].message.content);
+    res.json(aiOutput);
+  } catch (error) {
+    res.status(500).json({ error: 'AI processing failed', details: error.message });
+  }
+});
+
+module.exports = router;
