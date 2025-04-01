@@ -8,14 +8,16 @@ import {
 } from "react-router-dom";
 
 import Layout from "./pages/Layout.js";
-import Home from "./pages/Home.js";
 import Upload from "./pages/Upload.js";
+import Home from "./pages/Home.js";
+import { Agent } from "./pages/Agent.js";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={<Home />} />
       <Route path="upload" element={<Upload />} />
+      <Route path="agent" element={<Agent />} />
     </Route>
   )
 );

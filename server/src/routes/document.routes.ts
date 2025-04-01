@@ -2,13 +2,12 @@ import express, { Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { PrismaClient } from "@prisma/client";
 // @ts-ignore
 import pdfParse from "pdf-parse";
 import { OpenAI } from "openai";
+import { prisma } from "../lib/prisma";
 
-const prisma = new PrismaClient();
-const router = express.Router();
+export const router = express.Router();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -259,5 +258,3 @@ router.get("/", async (req: Request, res: Response) => {
       .json({ error: "Failed to list documents", details: error.message });
   }
 });
-
-export { router as documentRouter };
