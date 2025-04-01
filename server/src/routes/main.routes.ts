@@ -1,12 +1,12 @@
 import express, { Request, Response } from "express";
-import { documentRouter } from "./document.routes";
+import { router as uploadRouter } from "./upload.routes";
+// import { router as documentRouter } from "./document.routes";
 
 export const router = express.Router();
 
 /**
  * @route GET /api/v1/health
  * @description Health check endpoint
- * @access Public
  */
 router.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
@@ -19,7 +19,6 @@ router.get("/health", (req: Request, res: Response) => {
 /**
  * @route GET /api/v1/version
  * @description Get API version information
- * @access Public
  */
 router.get("/version", (req: Request, res: Response) => {
   res.status(200).json({
@@ -31,6 +30,7 @@ router.get("/version", (req: Request, res: Response) => {
 /**
  * @route GET /api/v1/documents
  * @description Get all documents
- * @access Public
  */
-router.use("/documents", documentRouter);
+// router.use("/documents", documentRouter);
+
+router.use("/upload", uploadRouter);
