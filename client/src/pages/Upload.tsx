@@ -1,7 +1,7 @@
 // src/components/Upload/Upload.tsx
 
 import { useState } from "react";
-import DocUpload from "../components/DocUpload";
+// import DocUpload from "../components/DocUpload";
 import { DocumentUpload } from "../components/DocumentUpload";
 
 const Upload = () => {
