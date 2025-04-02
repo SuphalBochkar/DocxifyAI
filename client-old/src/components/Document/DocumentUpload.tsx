@@ -150,14 +150,17 @@ export const DocumentUpload = () => {
     setMessage("");
   };
 
+  const navigateToAgentPage = () => {
+    window.location.href = "/agent";
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center p-6">
+    <div className="flex flex-col items-center justify-center p-6 mb-17 mt-17">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-semibold mb-6 text-center">
           Upload Document
         </h2>
 
-        {/* Drag & Drop Area */}
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
             dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
@@ -202,7 +205,6 @@ export const DocumentUpload = () => {
           )}
         </div>
 
-        {/* Upload Button */}
         {file && (
           <button
             onClick={handleUpload}
@@ -216,8 +218,14 @@ export const DocumentUpload = () => {
             {uploading ? "Uploading..." : "Upload"}
           </button>
         )}
+        <button
+          onClick={navigateToAgentPage}
+          className="mt-4 w-full py-2 px-4 rounded-md text-white transition-colors bg-green-600 hover:bg-green-700"
+        >
+          Document Preview
+        </button>
 
-        {/* Message */}
+      
         {message && (
           <p className="mt-4 text-center text-sm text-gray-700">{message}</p>
         )}
