@@ -1,30 +1,35 @@
-export interface Document {
-  id: string;
-  name: string;
-  content: string;
-  uploadedAt: string;
+export interface ChatMessage {
+  id: string
+  role: "user" | "assistant"
+  content: string
+  timestamp: string
 }
 
 export interface ParsedField {
-  name: string;
-  value: string | null;
-  status: "found" | "missing";
+  name: string
+  value: string | null
+  status: "found" | "missing"
+  confidence?: number
 }
 
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
+export interface Document {
+  id: string
+  name: string
+  url: string
+  size: number
+  type: string
+  uploadedAt: string
+  parsedData?: Record<string, any>
 }
 
 export interface DocumentViewerProps {
-  document?: Document;
-  parsedFields: ParsedField[];
+  document?: {
+    id: string
+    name: string
+    url: string
+    content?: string
+    parsedData?: Record<string, any>
+  }
+  parsedFields?: ParsedField[]
 }
 
-export interface ChatInterfaceProps {
-  messages: ChatMessage[];
-  onSendMessage: (message: string) => void;
-  isLoading?: boolean;
-}

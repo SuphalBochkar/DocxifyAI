@@ -16,18 +16,15 @@ datasource db {
 model Document {
     id            String   @id @default(auto()) @map("_id") @db.ObjectId
     fileName      String
-    originalName  String
-    mimeType      String
+    fileType      String
     fileSize      Int
-    storageUrl    String?
+    url           String?
     content       String?
     extractedData Json?
-    missingFields String[]
     createdAt     DateTime @default(now())
     updatedAt     DateTime @updatedAt
-
-    // Relation to chat histories
-    chats Chat[]
+    Chat          Chat[]
+    IP            String
 }
 
 model Chat {
