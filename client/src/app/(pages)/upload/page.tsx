@@ -1,4 +1,4 @@
-import { DocumentUpload } from "@/components/document-upload";
+import { DocumentUpload } from "@/components/Document/DocumentUpload";
 
 export default function UploadPage() {
   return (
