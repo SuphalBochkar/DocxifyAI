@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Docxify - Advanced AI Document Processing",
+  title: "DocxifyAI - Advanced AI Document Processing",
   description:
     "Extract, analyze, and retrieve missing information from your documents with our advanced AI assistant.",
   generator: "v0.dev",

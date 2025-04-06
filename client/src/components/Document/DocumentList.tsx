@@ -43,9 +43,9 @@ export function DocumentList({ documents, onSelectDocument, onDeleteDocument, se
 
   return (
     <Card className="border-slate-200 shadow-sm h-full">
-      <CardHeader className="px-4 py-3 border-b bg-slate-50">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium text-slate-800">Documents</CardTitle>
+      <CardHeader className="px-4 py-3 border-b bg-blue-600">
+        <div className="flex items-center justify-between ">
+          <CardTitle className="text-lg font-medium text-slate-50 font-bold">Documents</CardTitle>
           <Button
             variant="outline"
             size="sm"

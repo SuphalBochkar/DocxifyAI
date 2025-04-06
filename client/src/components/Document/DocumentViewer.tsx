@@ -28,11 +28,13 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
   if (!document) {
     return (
       <Card className="border-slate-200 shadow-sm h-full">
-        <CardHeader className="px-4 py-3 border-b bg-slate-50">
-          <CardTitle className="text-lg font-medium text-slate-800">
-            Document Viewer
-          </CardTitle>
-        </CardHeader>
+  <CardHeader className="px-4 py-3 border-b bg-blue-600 flex items-center justify-center">
+    <CardTitle className="text-lg font-bold text-white">
+      Document Viewer
+    </CardTitle>
+  </CardHeader>
+
+
         <CardContent className="p-6 flex flex-col items-center justify-center h-full">
           <div className="text-center">
             <FileText className="h-16 w-16 text-slate-300 mx-auto mb-4" />

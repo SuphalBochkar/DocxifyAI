@@ -255,7 +255,7 @@ export const DocumentUpload = () => {
                       />
                     </div>
                     <p className="text-sm text-slate-500 mt-4">
-                      Supported formats: PDF, DOC, DOCX, JPG, PNG
+                      Supported format: PDF
                     </p>
                   </motion.div>
                 ) : (
@@ -417,7 +417,7 @@ export const DocumentUpload = () => {
                 <li className="flex items-start">
                   <CheckCircle className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
                   <span>
-                    Upload your document in PDF, DOC, DOCX, or image format
+                    Upload your document in PDF
                   </span>
                 </li>
                 <li className="flex items-start">
@@ -523,6 +523,7 @@ export const DocumentUpload = () => {
                           Upload a document to see a preview.
                         </p>
                       </div>
+
                     )}
                   </div>
 
