@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
-import { router as uploadRouter } from "./upload.routes";
+import { router as recordsRouter } from "./records.routes";
+import { router as docsRouter } from "./docs.routes";
 import { router as testRouter } from "./test.routes";
 import { HttpStatus } from "../lib/types";
-// import { router as documentRouter } from "./document.routes";
 
 export const router = express.Router();
 
@@ -30,18 +30,18 @@ router.get("/version", (req: Request, res: Response) => {
 });
 
 /**
- * @route GET /api/v1/documents
+ * @route GET /api/v1/records
  * @description Get all documents
  */
 
-// router.use("/documents", documentRouter);
+router.use("/records", recordsRouter);
 
 /**
- * @route POST /api/v1/upload
+ * @route POST /api/v1/docs
  * @description Upload file to S3 and save metadata in Prisma
  */
 
-router.use("/upload", uploadRouter);
+router.use("/docs", docsRouter);
 
 /**
  * @route GET /api/v1/test
