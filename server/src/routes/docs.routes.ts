@@ -268,3 +268,104 @@ router.get("/usage", async (req: Request, res: Response) => {
     uploadsRemaining: Math.max(0, 3 - uploadCount),
   });
 });
+
+/**
+ * @route POST /api/v1/docs/procedure
+ * @description Unified endpoint for document upload, extraction, and processing
+ */
+router.post(
+  "/procedure",
+  uploadLimiter,
+  multerS3Upload.single("file"),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        res.status(HttpStatus.BAD_REQUEST).json({ error: "No file uploaded" });
+        return;
+      }
+
+      const ip = req.ip || req.socket.remoteAddress || "Unknown";
+      const file = req.file as Express.MulterS3.File;
+
+      // Create initial document record
+      const document = await prisma.document.create({
+        data: {
+          fileName: file.key,
+          fileType: file.mimetype,
+          fileSize: file.size,
+          url: file.location,
+          IP: ip,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          status: "PENDING",
+        },
+      });
+
+      // Start background processing
+      (async () => {
+        try {
+          // Update status to EXTRACTING
+          await prisma.document.update({
+            where: { id: document.id },
+            data: { status: "EXTRACTING" },
+          });
+
+          // Extract text
+          const extractedText = await extractTextFromS3(
+            process.env.AWS_BUCKET_NAME!,
+            document.fileName
+          );
+
+          // Update status to EXTRACTED and save content
+          await prisma.document.update({
+            where: { id: document.id },
+            data: {
+              content: extractedText,
+              status: "EXTRACTED",
+            },
+          });
+
+          // Update status to PROCESSING
+          await prisma.document.update({
+            where: { id: document.id },
+            data: { status: "PROCESSING" },
+          });
+
+          // Process with OpenAI
+          const processedData = await extractDocumentData(
+            extractedText,
+            document.url || ""
+          );
+
+          // Update final status and save processed data
+          await prisma.document.update({
+            where: { id: document.id },
+            data: {
+              extractedData: processedData,
+              status: "PROCESSED",
+            },
+          });
+        } catch (error) {
+          console.error("Background processing error:", error);
+          await prisma.document.update({
+            where: { id: document.id },
+            data: { status: "FAILED" },
+          });
+        }
+      })();
+
+      // Immediately return the document ID to the client
+      res.status(HttpStatus.ACCEPTED).json({
+        message: "Document upload initiated. Processing started.",
+        documentId: document.id,
+        url: file.location,
+      });
+    } catch (error) {
+      console.error("Upload Error:", error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: "Failed to upload file",
+        details: (error as Error).message,
+      });
+    }
+  }
+);

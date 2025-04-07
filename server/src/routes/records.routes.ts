@@ -23,6 +23,7 @@ router.get("/", async (req: Request, res: Response) => {
         fileSize: true,
         status: true,
         createdAt: true,
+        url: true,
       },
     });
 
