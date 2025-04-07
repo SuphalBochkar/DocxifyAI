@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DocumentList } from "@/components/Document/DocumentList";
 import { ChatInterface } from "@/components/Agent/ChatInterface";
 import { DocumentViewer } from "@/components/Document/DocumentViewer";
+import { Badge } from "@/components/ui/badge";
 import type { Document, ChatMessage } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 
@@ -34,10 +35,11 @@ export default function Agent() {
     const fetchDocuments = async () => {
       setIsLoadingDocuments(true);
       try {
-        const response = await fetch("http://localhost:5000/api/documents");
+        const response = await fetch("http://localhost:8080/api/v1/records");
         const data = await response.json();
+        const docData = data.data || data.documents || data;
 
-        const formattedDocuments: Document[] = data.map((doc: any) => ({
+        const formattedDocuments: Document[] = docData.map((doc: any) => ({
           id: doc.id || String(Math.random()),
           name: doc.name || "Unnamed Document",
           url: doc.url || "#",
@@ -50,6 +52,43 @@ export default function Agent() {
         setDocuments(formattedDocuments);
       } catch (error) {
         console.error("Error fetching documents:", error);
+        // Add some sample documents for demo purposes
+        setDocuments([
+          {
+            id: "1",
+            name: "Invoice-2023-001.pdf",
+            url: "https://example.com/sample.pdf",
+            size: 1024 * 1024 * 2.5, // 2.5MB
+            type: "application/pdf",
+            uploadedAt: "2023-05-15T10:30:00Z",
+            parsedData: {
+              invoiceNumber: "INV-2023-001",
+              date: "2023-05-10",
+              dueDate: "2023-06-10",
+              totalAmount: 1250.5,
+              customerName: "Acme Corporation",
+              customerEmail: "billing@acme.com",
+              taxAmount: null,
+            },
+          },
+          {
+            id: "2",
+            name: "Contract-2023-Q2.pdf",
+            url: "https://example.com/sample2.pdf",
+            size: 1024 * 1024 * 3.7, // 3.7MB
+            type: "application/pdf",
+            uploadedAt: "2023-04-20T14:15:00Z",
+            parsedData: {
+              contractNumber: "CT-2023-Q2-001",
+              startDate: "2023-04-01",
+              endDate: "2023-06-30",
+              clientName: "TechSolutions Inc.",
+              serviceType: "Software Development",
+              totalValue: 25000,
+              paymentTerms: null,
+            },
+          },
+        ]);
       } finally {
         setIsLoadingDocuments(false);
       }
@@ -59,46 +98,63 @@ export default function Agent() {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-gray-100">
-      {/* Header */}
-     
-
-      {isLoadingDocuments ? (
-        <div className="flex flex-1 items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        </div>
-      ) : (
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar: Document List */}
-          <div className="w-1/3 bg-white shadow-lg p-4 overflow-y-auto">
-            <DocumentList
-              documents={documents}
-              onSelectDocument={setSelectedDocument}
-              selectedDocumentId={selectedDocument?.id}
-            />
-          </div>
-
-          {/* Main Content */}
-          <div className="w-3/4 flex flex-col p-4 gap-4">
-            Document Viewer
-            <div className="flex-1 bg-white shadow-lg p-4 rounded-lg overflow-y-auto">
-              <DocumentViewer document={selectedDocument} />
-            </div>
-
-            {/* Chat Interface */}
-            <div className="h-1/3 bg-white shadow-lg p-4 rounded-lg flex flex-col">
-              <ChatInterface
-                messages={messages}
-                onSendMessage={() => {}}
-                isLoading={isLoading}
-                selectedDocument={
-                  selectedDocument ? { id: selectedDocument.id, name: selectedDocument.name } : null
-                }
-              />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col h-[calc(100vh-4rem)]">
+          {/* Header Section */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-bold text-slate-800">
+                Document AI Agent
+              </h1>
+              <Badge className="px-3 py-1 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors">
+                Intelligent Document Processing
+              </Badge>
             </div>
           </div>
+
+          {/* Main Content Area */}
+          {isLoadingDocuments ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-800 mx-auto" />
+                <p className="text-slate-600 text-lg">
+                  Loading your documents...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+              {/* Document List - 3 columns */}
+              <div className="lg:col-span-3 h-full">
+                <DocumentList
+                  documents={documents}
+                  onSelectDocument={handleSelectDocument}
+                  onDeleteDocument={handleDeleteDocument}
+                  selectedDocumentId={selectedDocument?.id}
+                />
+              </div>
+
+              {/* Chat and Document Viewer - 9 columns */}
+              <div className="lg:col-span-9 h-full flex flex-col gap-6">
+                <div className="flex-1 min-h-0">
+                  <ChatInterface
+                    messages={messages.map((msg) => ({
+                      ...msg,
+                      timestamp: new Date(msg.timestamp).getTime(),
+                    }))}
+                    onSendMessage={handleSendMessage}
+                    isLoading={isLoading}
+                  />
+                </div>
+                <div className="flex-1 min-h-0">
+                  <DocumentViewer document={selectedDocument} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

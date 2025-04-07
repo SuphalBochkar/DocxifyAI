@@ -10,6 +10,7 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
+  ShieldCheck,
 } from "lucide-react";
 import type { Document, ParsedField } from "../../lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -27,18 +28,16 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
 
   if (!document) {
     return (
-      <Card className="border-slate-200 shadow-sm h-full">
-  <CardHeader className="px-4 py-3 border-b bg-blue-600 flex items-center justify-center">
-    <CardTitle className="text-lg font-bold text-white">
-      Document Viewer
-    </CardTitle>
-  </CardHeader>
-
-
-        <CardContent className="p-6 flex flex-col items-center justify-center h-full">
-          <div className="text-center">
-            <FileText className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-800 mb-2">
+      <Card className="border-slate-200 shadow-lg rounded-xl h-full flex flex-col">
+        <CardHeader className="px-4 py-3 border-b bg-gradient-to-r from-blue-800 to-blue-900 flex items-center justify-center">
+          <CardTitle className="text-lg font-bold text-white">
+            Document Viewer
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center space-y-4">
+            <FileText className="h-16 w-16 text-slate-300 mx-auto" />
+            <h3 className="text-lg font-medium text-slate-800">
               No document selected
             </h3>
             <p className="text-slate-500 max-w-md">
@@ -67,7 +66,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
   const isImage = document.type.startsWith("image/");
 
   return (
-    <Card className="border-slate-200 shadow-sm h-full">
+    <Card className="border-slate-200 shadow-lg rounded-xl h-full flex flex-col">
       <CardHeader className="px-4 py-3 border-b bg-slate-50">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium text-slate-800">
@@ -77,7 +76,31 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             <Button
               variant="outline"
               size="sm"
-              className="h-8"
+              className="h-8 bg-blue-800 text-white hover:bg-blue-700 border-blue-800"
+              onClick={() => {
+                // Placeholder for verify function
+                console.log("Verify document:", document.id);
+              }}
+            >
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Verify
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 bg-blue-600 text-white hover:bg-blue-500 border-blue-600"
+              onClick={() => {
+                // Placeholder for validate function
+                console.log("Validate document:", document.id);
+              }}
+            >
+              <ShieldCheck className="h-4 w-4 mr-1" />
+              Validate
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 bg-white hover:bg-slate-50 border-slate-200"
               onClick={() => window.open(document.url, "_blank")}
             >
               <Download className="h-4 w-4 mr-1" />
@@ -86,27 +109,31 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <CardContent className="flex-1 p-0 flex flex-col">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex-1 flex flex-col"
+        >
           <div className="border-b">
             <TabsList className="bg-transparent p-0 h-auto">
               <TabsTrigger
                 value="preview"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-800 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 transition-all duration-200"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </TabsTrigger>
               <TabsTrigger
                 value="json"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-800 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 transition-all duration-200"
               >
                 <Code className="h-4 w-4 mr-2" />
                 JSON
               </TabsTrigger>
               <TabsTrigger
                 value="table"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-800 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 transition-all duration-200"
               >
                 <Table2 className="h-4 w-4 mr-2" />
                 Table View
@@ -114,32 +141,31 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             </TabsList>
           </div>
 
-          <TabsContent value="preview" className="p-0 m-0">
-            <div className="h-[500px] overflow-auto bg-slate-50 flex items-center justify-center">
+          <TabsContent value="preview" className="flex-1 p-0 m-0">
+            <div className="h-full overflow-auto bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+              <div className="text-xl font-bold bg-yellow-200 p-4 mb-4 border-2 border-yellow-500 rounded-md">
+                {document.url}
+              </div>
               {isPdf ? (
                 <iframe
-                  src={`${document.url}#toolbar=0`}
+                  src={document.url}
                   className="w-full h-full border-0"
                   title={document.name}
-                />
-              ) : isImage ? (
-                <Image
-                  src={document.url || "/placeholder.svg"}
-                  alt={document.name}
-                  className="max-w-full max-h-full object-contain"
+                  sandbox="allow-scripts allow-same-origin"
                 />
               ) : (
-                <div className="text-center p-6">
-                  <FileText className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-800 mb-2">
+                <div className="text-center p-6 space-y-4">
+                  <FileText className="h-16 w-16 text-slate-400 mx-auto" />
+                  <h3 className="text-lg font-medium text-slate-800">
                     Preview not available
                   </h3>
-                  <p className="text-slate-600 mb-4">
+                  <p className="text-slate-600">
                     This file type cannot be previewed directly.
                   </p>
                   <Button
                     variant="outline"
                     onClick={() => window.open(document.url, "_blank")}
+                    className="bg-white hover:bg-slate-50 border-slate-200"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Open in new tab
@@ -149,8 +175,8 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="json" className="p-4 m-0">
-            <div className="bg-slate-900 text-slate-50 p-4 rounded-md overflow-auto max-h-[500px]">
+          <TabsContent value="json" className="flex-1 p-4 m-0">
+            <div className="h-full bg-slate-900 text-slate-50 p-4 rounded-xl overflow-auto">
               <pre className="text-sm font-mono">
                 {document.parsedData
                   ? JSON.stringify(document.parsedData, null, 2)
@@ -159,9 +185,9 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="table" className="p-4 m-0">
+          <TabsContent value="table" className="flex-1 p-4 m-0">
             {parsedFields.length > 0 ? (
-              <div className="overflow-auto max-h-[500px]">
+              <div className="h-full overflow-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-slate-100">
@@ -193,7 +219,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
                           {field.status === "found" ? (
                             <Badge
                               variant="success"
-                              className="flex items-center gap-1 w-fit"
+                              className="flex items-center gap-1 w-fit bg-green-100 text-green-800"
                             >
                               <CheckCircle className="h-3 w-3" />
                               Found
@@ -201,7 +227,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
                           ) : (
                             <Badge
                               variant="destructive"
-                              className="flex items-center gap-1 w-fit"
+                              className="flex items-center gap-1 w-fit bg-red-100 text-red-800"
                             >
                               <AlertCircle className="h-3 w-3" />
                               Missing
@@ -214,7 +240,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
                 </table>
               </div>
             ) : (
-              <div className="text-center p-6 text-slate-500">
+              <div className="h-full flex items-center justify-center text-slate-500">
                 No parsed data available for this document.
               </div>
             )}
