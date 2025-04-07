@@ -10,7 +10,7 @@ export default function UploadPage() {
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Upload your documents for AI-powered processing and analysis. We
-            support PDF, DOC, DOCX, and image formats.
+            support PDF format.
           </p>
         </div>
         <DocumentUpload />

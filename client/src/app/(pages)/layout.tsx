@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "@/providers/providers";
 import "./globals.css";
 import Navbar from "@/components/Main/Navbar";
-import { Footer } from "react-day-picker";
+import Footer from "@/components/Main/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Docxify - Advanced AI Document Processing",
+  title: "DocxifyAI - Advanced AI Document Processing",
   description:
     "Extract, analyze, and retrieve missing information from your documents with our advanced AI assistant.",
 };
