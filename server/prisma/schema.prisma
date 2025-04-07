@@ -13,18 +13,28 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum DocumentStatus {
+    PENDING
+    EXTRACTING
+    EXTRACTED
+    PROCESSING
+    PROCESSED
+    FAILED
+}
+
 model Document {
-    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    id            String         @id @default(auto()) @map("_id") @db.ObjectId
     fileName      String
     fileType      String
     fileSize      Int
     url           String?
     content       String?
     extractedData Json?
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
     Chat          Chat[]
     IP            String
+    status        DocumentStatus @default(PENDING)
 }
 
 model Chat {

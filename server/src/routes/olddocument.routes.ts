@@ -107,7 +107,6 @@ router.post(
       const document = await prisma.document.create({
         data: {
           fileName: req.file.filename,
-          originalName: req.file.originalname,
           mimeType: req.file.mimetype,
           fileSize: req.file.size,
           storageUrl: filePath,

@@ -9,7 +9,6 @@ import {
   FileText,
   CheckCircle,
   AlertCircle,
-  FileImage,
   FileIcon as FilePdf,
   FileType,
   Eye,
@@ -28,7 +27,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Image from "next/image";
 
 export const DocumentUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -66,10 +64,7 @@ export const DocumentUpload = () => {
       setMessageType("");
 
       // Create preview URL for supported file types
-      if (selectedFile.type.startsWith("image/")) {
-        const url = URL.createObjectURL(selectedFile);
-        setPreviewUrl(url);
-      } else if (selectedFile.type === "application/pdf") {
+      if (selectedFile.type === "application/pdf") {
         const url = URL.createObjectURL(selectedFile);
         setPreviewUrl(url);
       } else {
@@ -100,10 +95,7 @@ export const DocumentUpload = () => {
       setMessageType("");
 
       // Create preview URL for supported file types
-      if (droppedFile.type.startsWith("image/")) {
-        const url = URL.createObjectURL(droppedFile);
-        setPreviewUrl(url);
-      } else if (droppedFile.type === "application/pdf") {
+      if (droppedFile.type === "application/pdf") {
         const url = URL.createObjectURL(droppedFile);
         setPreviewUrl(url);
       } else {
@@ -130,7 +122,7 @@ export const DocumentUpload = () => {
     const clearProgressSimulation = simulateProgress();
 
     try {
-      const response = await fetch("http://localhost:3000/api/v1/upload", {
+      const response = await fetch("http://localhost:8080/api/v1/docs/upload", {
         method: "POST",
         body: formData,
       });
@@ -141,7 +133,7 @@ export const DocumentUpload = () => {
       setUploadProgress(100);
 
       if (response.ok) {
-        setMessage(`Upload successful: ${data.document.url}`);
+        setMessage(`Upload successful: ${data.url}`);
         setMessageType("success");
         // Switch to preview tab after successful upload
         setActiveTab("preview");
@@ -176,9 +168,7 @@ export const DocumentUpload = () => {
   const getFileIcon = () => {
     if (!file) return <FileText className="h-6 w-6" />;
 
-    if (file.type.startsWith("image/")) {
-      return <FileImage className="h-6 w-6" />;
-    } else if (file.type === "application/pdf") {
+    if (file.type === "application/pdf") {
       return <FilePdf className="h-6 w-6" />;
     } else if (file.type.includes("word") || file.type.includes("doc")) {
       return <FileText className="h-6 w-6" />;
@@ -490,13 +480,7 @@ export const DocumentUpload = () => {
 
                   <div className="border rounded-lg overflow-hidden bg-slate-50 min-h-[400px] flex items-center justify-center">
                     {previewUrl ? (
-                      file.type.startsWith("image/") ? (
-                        <Image
-                          src={previewUrl || "/placeholder.svg"}
-                          alt={file.name}
-                          className="max-w-full max-h-[600px] object-contain"
-                        />
-                      ) : file.type === "application/pdf" ? (
+                      file.type === "application/pdf" ? (
                         <iframe
                           src={`${previewUrl}#toolbar=0`}
                           className="w-full h-[600px]"

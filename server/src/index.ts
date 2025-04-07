@@ -15,10 +15,10 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:5173",
+    origin: "http://localhost:3000",
   })
 );
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 
 app.use("/api/v1", mainRouter);
 
