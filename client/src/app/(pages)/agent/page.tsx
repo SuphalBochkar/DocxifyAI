@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DocumentList } from "@/components/Document/DocumentList";
 import { ChatInterface } from "@/components/Agent/ChatInterface";
 import { DocumentViewer } from "@/components/Document/DocumentViewer";
+import { Badge } from "@/components/ui/badge";
 import type { Document, ChatMessage } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 
@@ -36,11 +37,11 @@ export default function Agent() {
     const fetchDocuments = async () => {
       setIsLoadingDocuments(true);
       try {
-        const response = await fetch("http://localhost:5000/api/documents");
+        const response = await fetch("http://localhost:8080/api/v1/records");
         const data = await response.json();
+        const docData = data.data || data.documents || data;
 
-        // Transform the data to match our Document type
-        const formattedDocuments: Document[] = data.map((doc: any) => ({
+        const formattedDocuments: Document[] = docData.map((doc: any) => ({
           id: doc.id || String(Math.random()),
           name: doc.name || "Unnamed Document",
           url: doc.url || "#",
@@ -87,22 +88,6 @@ export default function Agent() {
               serviceType: "Software Development",
               totalValue: 25000,
               paymentTerms: null,
-            },
-          },
-          {
-            id: "3",
-            name: "Receipt-May2023.jpg",
-            url: "https://example.com/sample.jpg",
-            size: 1024 * 512, // 512KB
-            type: "image/jpeg",
-            uploadedAt: "2023-05-22T09:45:00Z",
-            parsedData: {
-              receiptNumber: "R-2023-05-001",
-              date: "2023-05-22",
-              vendor: "Office Supplies Co.",
-              items: "Paper, Pens, Notebooks",
-              totalAmount: 87.35,
-              paymentMethod: "Credit Card",
             },
           },
         ]);
@@ -235,47 +220,63 @@ export default function Agent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">
-        Document AI Agent
-      </h1>
-
-      {isLoadingDocuments ? (
-        <div className="flex items-center justify-center h-[600px]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-slate-600">Loading documents...</p>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <DocumentList
-              documents={documents}
-              onSelectDocument={handleSelectDocument}
-              onDeleteDocument={handleDeleteDocument}
-              selectedDocumentId={selectedDocument?.id}
-            />
-          </div>
-
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 gap-6">
-              <ChatInterface
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-                selectedDocument={
-                  selectedDocument
-                    ? { id: selectedDocument.id, name: selectedDocument.name }
-                    : null
-                }
-              />
-
-              <DocumentViewer document={selectedDocument} />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col h-[calc(100vh-4rem)]">
+          {/* Header Section */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-bold text-slate-800">
+                Document AI Agent
+              </h1>
+              <Badge className="px-3 py-1 bg-blue-50 text-blue-800 hover:bg-blue-100 transition-colors">
+                Intelligent Document Processing
+              </Badge>
             </div>
           </div>
+
+          {/* Main Content Area */}
+          {isLoadingDocuments ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-800 mx-auto" />
+                <p className="text-slate-600 text-lg">
+                  Loading your documents...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+              {/* Document List - 3 columns */}
+              <div className="lg:col-span-3 h-full">
+                <DocumentList
+                  documents={documents}
+                  onSelectDocument={handleSelectDocument}
+                  onDeleteDocument={handleDeleteDocument}
+                  selectedDocumentId={selectedDocument?.id}
+                />
+              </div>
+
+              {/* Chat and Document Viewer - 9 columns */}
+              <div className="lg:col-span-9 h-full flex flex-col gap-6">
+                <div className="flex-1 min-h-0">
+                  <ChatInterface
+                    messages={messages.map((msg) => ({
+                      ...msg,
+                      timestamp: new Date(msg.timestamp).getTime(),
+                    }))}
+                    onSendMessage={handleSendMessage}
+                    isLoading={isLoading}
+                  />
+                </div>
+                <div className="flex-1 min-h-0">
+                  <DocumentViewer document={selectedDocument} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
