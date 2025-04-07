@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "@/providers/providers";
 import "./globals.css";
+import Navbar from "@/components/Main/Navbar";
+import { Footer } from "react-day-picker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +19,6 @@ export const metadata: Metadata = {
   title: "Docxify - Advanced AI Document Processing",
   description:
     "Extract, analyze, and retrieve missing information from your documents with our advanced AI assistant.",
-  generator: "v0.dev",
 };
 
 export default function RootLayout({
@@ -30,7 +31,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );
