@@ -63,29 +63,29 @@ export function DocumentList({
 
   return (
     <Card className="border-slate-200 shadow-lg rounded-xl h-full flex flex-col">
-      <CardHeader className="px-4 py-3 border-b bg-gradient-to-r from-blue-800 to-blue-900">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FileText className="h-6 w-6 text-white" />
-            <CardTitle className="text-lg text-white font-bold">
-              Documents
-            </CardTitle>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="h-8 bg-white/10 hover:bg-white/20 text-white border-white/20"
-          >
-            {sortOrder === "asc" ? (
-              <SortAsc className="h-4 w-4 mr-1" />
-            ) : (
-              <SortDesc className="h-4 w-4 mr-1" />
-            )}
-            Date
-          </Button>
+      {/* <CardHeader className="px-4 py-3 border-b bg-gradient-to-r from-blue-800 to-blue-900"> */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <FileText className="h-6 w-6 text-white" />
+          <CardTitle className="text-lg text-white font-bold">
+            Documents
+          </CardTitle>
         </div>
-      </CardHeader>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          className="h-8 bg-white/10 hover:bg-white/20 text-white border-white/20"
+        >
+          {sortOrder === "asc" ? (
+            <SortAsc className="h-4 w-4 mr-1" />
+          ) : (
+            <SortDesc className="h-4 w-4 mr-1" />
+          )}
+          Date
+        </Button>
+      </div>
+      {/* </CardHeader> */}
       <CardContent className="p-0 flex-1 flex flex-col">
         <div className="p-3 border-b">
           <div className="relative">

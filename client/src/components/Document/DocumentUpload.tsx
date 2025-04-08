@@ -1182,7 +1182,7 @@ export const DocumentUpload = () => {
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <FileText className="h-6 w-6 text-blue-600" />
+                    <FileText className="h-6 w-6 text-blue-800" />
                   </div>
                   <h3 className="text-sm font-medium text-gray-900 mb-1">
                     AI Processing
@@ -1319,7 +1319,7 @@ export const DocumentUpload = () => {
                     <div className="flex justify-center mt-6">
                       <Button
                         onClick={handleUpload}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                        className="bg-blue-800 hover:bg-blue-700 text-white px-8"
                         size="lg"
                       >
                         <ArrowRight className="mr-2 h-4 w-4" />
@@ -1458,7 +1458,7 @@ export const DocumentUpload = () => {
                   </div>
                   <Button
                     onClick={handleUpload}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-800 hover:bg-blue-700 text-white"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Try Again

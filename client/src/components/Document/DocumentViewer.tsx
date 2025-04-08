@@ -5,7 +5,6 @@ import {
   Eye,
   Code,
   Table2,
-  Download,
   ExternalLink,
   FileText,
   AlertCircle,
@@ -17,7 +16,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import Image from "next/image";
 
 interface DocumentViewerProps {
   document: Document | null;
@@ -63,7 +61,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
   }
 
   const isPdf = document.type === "application/pdf";
-  const isImage = document.type.startsWith("image/");
+  // const isImage = document.type.startsWith("image/");
 
   return (
     <Card className="border-slate-200 shadow-lg rounded-xl h-full flex flex-col">
@@ -97,7 +95,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
               <ShieldCheck className="h-4 w-4 mr-1" />
               Validate
             </Button>
-            <Button
+            {/* <Button
               variant="outline"
               size="sm"
               className="h-8 bg-white hover:bg-slate-50 border-slate-200"
@@ -105,7 +103,7 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             >
               <Download className="h-4 w-4 mr-1" />
               Download
-            </Button>
+            </Button> */}
           </div>
         </div>
       </CardHeader>
