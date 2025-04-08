@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { DocumentList } from "@/components/Document/DocumentList";
 import { ChatInterface } from "@/components/Agent/ChatInterface";
@@ -18,40 +17,6 @@ export default function Agent() {
   const [isLoadingDocumentDetails, setIsLoadingDocumentDetails] =
     useState(false);
   const [isFullscreenViewer, setIsFullscreenViewer] = useState(false);
-
-  const toggleFullscreenViewer = () => {
-    setIsFullscreenViewer(!isFullscreenViewer);
-  };
-
-  const NoDocumentSelected = () => (
-    <div className="flex flex-col items-center justify-center h-full text-slate-500">
-      <FileSearch className="h-16 w-16 mb-4 text-slate-300" />
-      <p className="text-lg font-medium">No document selected</p>
-      <p className="mt-2 text-sm text-center">
-        Select a document from the list to view it here
-      </p>
-    </div>
-  );
-
-  const EmptyDocumentList = () => (
-    <div className="flex flex-col items-center justify-center h-full text-slate-500">
-      <FileText className="h-16 w-16 mb-4 text-slate-300" />
-      <p className="text-lg font-medium">No documents available</p>
-      <p className="mt-2 text-sm text-center">
-        Upload documents to start analyzing
-      </p>
-    </div>
-  );
-
-  const NoSelectedDocumentChat = () => (
-    <div className="flex flex-col items-center justify-center h-full text-slate-500">
-      <MessageSquare className="h-16 w-16 mb-4 text-slate-300" />
-      <p className="text-lg font-medium">Select a document first</p>
-      <p className="mt-2 text-sm text-center">
-        Choose a document to start the conversation
-      </p>
-    </div>
-  );
 
   useEffect(() => {
     if (selectedDocument) {
@@ -153,7 +118,7 @@ export default function Agent() {
 
   const handleDeleteDocument = async (documentId: string) => {
     try {
-      // API call to delete document
+      // API call to delete document (commented for now)
       // await fetch(`http://localhost:5000/api/documents/${documentId}`, {
       //   method: 'DELETE',
       // });
@@ -185,17 +150,6 @@ export default function Agent() {
     setIsLoading(true);
 
     try {
-      // In a real app, you would send the message to your backend API
-      // const response = await fetch("http://localhost:5000/api/chat", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     documentId: selectedDocument.id,
-      //     message: content,
-      //   }),
-      // });
-      // const data = await response.json();
-
       // Simulate API response delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -267,6 +221,30 @@ export default function Agent() {
     }
   };
 
+  const toggleFullscreenViewer = () => {
+    setIsFullscreenViewer(!isFullscreenViewer);
+  };
+
+  const EmptyDocumentList = () => (
+    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+      <FileText className="h-16 w-16 mb-4 text-slate-300" />
+      <p className="text-lg font-medium">No documents available</p>
+      <p className="mt-2 text-sm text-center">
+        Upload documents to start analyzing
+      </p>
+    </div>
+  );
+
+  const NoSelectedDocumentChat = () => (
+    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+      <MessageSquare className="h-16 w-16 mb-4 text-slate-300" />
+      <p className="text-lg font-medium">Select a document first</p>
+      <p className="mt-2 text-sm text-center">
+        Choose a document to start the conversation
+      </p>
+    </div>
+  );
+
   return (
     <div className="bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -286,11 +264,9 @@ export default function Agent() {
           {/* Main Content Area */}
           {isLoadingDocuments ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <Loader2 className="h-12 w-12 animate-spin text-blue-800 mx-auto" />
-                <p className="text-slate-600 text-lg">
-                  Loading your documents...
-                </p>
+              <div className="text-center space-y-3">
+                <Loader2 className="h-10 w-10 animate-spin text-blue-800 mx-auto" />
+                <p className="text-slate-600">Loading your documents...</p>
               </div>
             </div>
           ) : (

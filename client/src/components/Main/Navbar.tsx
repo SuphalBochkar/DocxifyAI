@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X, FileText, Home, Bot, Sparkles } from "lucide-react";
+import { Menu, X, FileText, Home, Bot } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,9 +33,6 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled ? "bg-white/40 backdrop-blur-xl shadow-sm" : "bg-transparent"
       }`}
@@ -48,10 +47,9 @@ const Navbar = () => {
             className="flex items-center gap-2"
           >
             <Link href="/" className="flex items-center">
-              <Sparkles className="h-6 w-6 text-blue-800" />
-              <span className="text-xl font-light tracking-tight text-slate-800">
-                Docxify
-                <span className="font-semibold text-blue-800">AI</span>
+              {/* <Sparkles className="h-6 w-6 text-blue-800" /> */}
+              <span className="text-xl font-bold text-blue-800">
+                DocxifyAI
               </span>
             </Link>
           </motion.div>
