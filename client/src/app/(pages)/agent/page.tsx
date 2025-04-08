@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { DocumentList } from "@/components/Document/DocumentList";
 import { ChatInterface } from "@/components/Agent/ChatInterface";
 import { DocumentViewer } from "@/components/Document/DocumentViewer";
-import { Badge } from "@/components/ui/badge";
 import type { Document, ChatMessage } from "@/lib/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileSearch, FileText, MessageSquare } from "lucide-react";
 
 export default function Agent() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -16,6 +15,43 @@ export default function Agent() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [isLoadingDocumentDetails, setIsLoadingDocumentDetails] =
+    useState(false);
+  const [isFullscreenViewer, setIsFullscreenViewer] = useState(false);
+
+  const toggleFullscreenViewer = () => {
+    setIsFullscreenViewer(!isFullscreenViewer);
+  };
+
+  const NoDocumentSelected = () => (
+    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+      <FileSearch className="h-16 w-16 mb-4 text-slate-300" />
+      <p className="text-lg font-medium">No document selected</p>
+      <p className="mt-2 text-sm text-center">
+        Select a document from the list to view it here
+      </p>
+    </div>
+  );
+
+  const EmptyDocumentList = () => (
+    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+      <FileText className="h-16 w-16 mb-4 text-slate-300" />
+      <p className="text-lg font-medium">No documents available</p>
+      <p className="mt-2 text-sm text-center">
+        Upload documents to start analyzing
+      </p>
+    </div>
+  );
+
+  const NoSelectedDocumentChat = () => (
+    <div className="flex flex-col items-center justify-center h-full text-slate-500">
+      <MessageSquare className="h-16 w-16 mb-4 text-slate-300" />
+      <p className="text-lg font-medium">Select a document first</p>
+      <p className="mt-2 text-sm text-center">
+        Choose a document to start the conversation
+      </p>
+    </div>
+  );
 
   useEffect(() => {
     if (selectedDocument) {
@@ -23,7 +59,7 @@ export default function Agent() {
         {
           id: "welcome",
           role: "assistant",
-          content: `Hello! I'm your document assistant. I can help you find information in "${selectedDocument.name}". What would you like to know?`,
+          content: `Hello! I'm your document assistant. I can help you find information in "${selectedDocument.fileName}". What would you like to know?`,
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -32,7 +68,6 @@ export default function Agent() {
     }
   }, [selectedDocument]);
 
-  // Fetch documents from API
   useEffect(() => {
     const fetchDocuments = async () => {
       setIsLoadingDocuments(true);
@@ -41,53 +76,50 @@ export default function Agent() {
         const data = await response.json();
         const docData = data.data || data.documents || data;
 
-        const formattedDocuments: Document[] = docData.map((doc: any) => ({
+        console.log("Fetched documents:", docData);
+
+        const formattedDocuments: Document[] = docData.map((doc: Document) => ({
           id: doc.id || String(Math.random()),
-          name: doc.name || "Unnamed Document",
+          fileName: doc.fileName || "Unnamed Document",
+          fileType: doc.fileType || "application/pdf",
+          fileSize: doc.fileSize || 0,
           url: doc.url || "#",
-          size: doc.size || 0,
-          type: doc.type || "application/pdf",
-          uploadedAt: doc.uploadedAt || new Date().toISOString(),
-          parsedData: doc.parsedData || null,
+          status: doc.status || "pending",
+          createdAt: doc.createdAt || new Date().toISOString(),
         }));
 
         setDocuments(formattedDocuments);
       } catch (error) {
         console.error("Error fetching documents:", error);
-        // Add some sample documents for demo purposes
         setDocuments([
           {
             id: "1",
-            name: "Invoice-2023-001.pdf",
+            fileName: "Invoice-2023-001.pdf",
+            fileType: "application/pdf",
+            fileSize: 1024 * 1024 * 2.5, // 2.5MB
             url: "https://example.com/sample.pdf",
-            size: 1024 * 1024 * 2.5, // 2.5MB
-            type: "application/pdf",
-            uploadedAt: "2023-05-15T10:30:00Z",
+            status: "processed",
+            createdAt: "2023-05-15T10:30:00Z",
             parsedData: {
               invoiceNumber: "INV-2023-001",
               date: "2023-05-10",
-              dueDate: "2023-06-10",
               totalAmount: 1250.5,
-              customerName: "Acme Corporation",
-              customerEmail: "billing@acme.com",
-              taxAmount: null,
+              missingFields: ["customerName", "address"],
             },
           },
           {
             id: "2",
-            name: "Contract-2023-Q2.pdf",
+            fileName: "Contract-2023-Q2.pdf",
+            fileType: "application/pdf",
+            fileSize: 1024 * 1024 * 3.7, // 3.7MB
             url: "https://example.com/sample2.pdf",
-            size: 1024 * 1024 * 3.7, // 3.7MB
-            type: "application/pdf",
-            uploadedAt: "2023-04-20T14:15:00Z",
+            status: "processed",
+            createdAt: "2023-04-20T14:15:00Z",
             parsedData: {
-              contractNumber: "CT-2023-Q2-001",
-              startDate: "2023-04-01",
-              endDate: "2023-06-30",
-              clientName: "TechSolutions Inc.",
-              serviceType: "Software Development",
-              totalValue: 25000,
-              paymentTerms: null,
+              invoiceNumber: null,
+              date: "2023-04-20",
+              totalAmount: null,
+              missingFields: ["signature", "witness"],
             },
           },
         ]);
@@ -99,8 +131,24 @@ export default function Agent() {
     fetchDocuments();
   }, []);
 
-  const handleSelectDocument = (document: Document) => {
-    setSelectedDocument(document);
+  const handleSelectDocument = async (document: Document) => {
+    setIsLoadingDocumentDetails(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/v1/records/${document.id}`
+      );
+      const data = await response.json();
+      setSelectedDocument({
+        ...document,
+        ...data.data,
+        extractedData: data.data.extractedData || document.extractedData,
+      });
+    } catch (error) {
+      console.error("Error fetching document details:", error);
+      setSelectedDocument(document);
+    } finally {
+      setIsLoadingDocumentDetails(false);
+    }
   };
 
   const handleDeleteDocument = async (documentId: string) => {
@@ -178,7 +226,7 @@ export default function Agent() {
         }`;
       } else if (content.toLowerCase().includes("missing")) {
         const missingFields = Object.entries(selectedDocument.parsedData || {})
-          .filter(([_, value]) => value === null)
+          .filter(([, value]) => value === null)
           .map(([key]) => key);
 
         if (missingFields.length > 0) {
@@ -220,11 +268,11 @@ export default function Agent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <div className="flex flex-col h-[calc(100vh-9rem)] overflow-hidden">
           {/* Header Section */}
-          <div className="flex items-center justify-between mb-8">
+          {/* <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <h1 className="text-3xl font-bold text-slate-800">
                 Document AI Agent
@@ -233,7 +281,7 @@ export default function Agent() {
                 Intelligent Document Processing
               </Badge>
             </div>
-          </div>
+          </div> */}
 
           {/* Main Content Area */}
           {isLoadingDocuments ? (
@@ -246,33 +294,58 @@ export default function Agent() {
               </div>
             </div>
           ) : (
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
-              {/* Document List - 3 columns */}
-              <div className="lg:col-span-3 h-full">
-                <DocumentList
-                  documents={documents}
-                  onSelectDocument={handleSelectDocument}
-                  onDeleteDocument={handleDeleteDocument}
-                  selectedDocumentId={selectedDocument?.id}
+            <div
+              className={`flex-1 grid ${
+                isFullscreenViewer ? "grid-cols-1" : "grid-cols-12"
+              } gap-6 min-h-0`}
+            >
+              {/* Document List - 3 columns (25%) */}
+              {!isFullscreenViewer && (
+                <div className="col-span-3 h-full overflow-hidden">
+                  {documents.length > 0 ? (
+                    <DocumentList
+                      documents={documents}
+                      onSelectDocument={handleSelectDocument}
+                      onDeleteDocument={handleDeleteDocument}
+                      selectedDocumentId={selectedDocument?.id}
+                    />
+                  ) : (
+                    <EmptyDocumentList />
+                  )}
+                </div>
+              )}
+
+              {/* Document Viewer - ~5.4 columns (45%) */}
+              <div
+                className={`${
+                  isFullscreenViewer ? "col-span-12" : "col-span-6"
+                } h-full overflow-hidden`}
+              >
+                <DocumentViewer
+                  document={selectedDocument}
+                  isLoading={isLoadingDocumentDetails}
+                  isFullscreen={isFullscreenViewer}
+                  onToggleFullscreen={toggleFullscreenViewer}
                 />
               </div>
 
-              {/* Chat and Document Viewer - 9 columns */}
-              <div className="lg:col-span-9 h-full flex flex-col gap-6">
-                <div className="flex-1 min-h-0">
-                  <ChatInterface
-                    messages={messages.map((msg) => ({
-                      ...msg,
-                      timestamp: new Date(msg.timestamp).getTime(),
-                    }))}
-                    onSendMessage={handleSendMessage}
-                    isLoading={isLoading}
-                  />
+              {/* Chat Interface - ~3.6 columns (30%) */}
+              {!isFullscreenViewer && (
+                <div className="col-span-3 h-full flex flex-col overflow-hidden">
+                  {selectedDocument ? (
+                    <ChatInterface
+                      messages={messages.map((msg) => ({
+                        ...msg,
+                        timestamp: new Date(msg.timestamp).getTime(),
+                      }))}
+                      onSendMessage={handleSendMessage}
+                      isLoading={isLoading}
+                    />
+                  ) : (
+                    <NoSelectedDocumentChat />
+                  )}
                 </div>
-                <div className="flex-1 min-h-0">
-                  <DocumentViewer document={selectedDocument} />
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>

@@ -8,23 +8,65 @@ import {
   Download,
   ExternalLink,
   FileText,
-  AlertCircle,
   CheckCircle,
   ShieldCheck,
+  Loader2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
-import type { Document, ParsedField } from "../../lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import Image from "next/image";
+import type { Document } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface DocumentViewerProps {
   document: Document | null;
+  isLoading?: boolean;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
-export function DocumentViewer({ document }: DocumentViewerProps) {
+const safeToString = (value: unknown): string => {
+  if (value === null || value === undefined) return "N/A";
+  if (Array.isArray(value)) return value.join(", ");
+  return String(value);
+};
+
+const formatKey = (key: string): string => {
+  return key
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+export function DocumentViewer({
+  document,
+  isLoading = false,
+  isFullscreen = false,
+  onToggleFullscreen,
+}: DocumentViewerProps) {
   const [activeTab, setActiveTab] = useState<string>("preview");
+
+  if (isLoading) {
+    return (
+      <Card className="border-slate-200 shadow-lg rounded-xl h-full flex flex-col">
+        <CardHeader className="px-4 py-3 border-b bg-gradient-to-r from-blue-800 to-blue-900 flex items-center justify-center">
+          <CardTitle className="text-lg font-bold text-white">
+            Document Viewer
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-800 mx-auto" />
+            <p className="text-slate-600 text-lg">
+              Loading document details...
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!document) {
     return (
@@ -50,28 +92,23 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
     );
   }
 
-  // Extract fields from document's parsedData if available
-  const parsedFields: ParsedField[] = [];
-  if (document.parsedData) {
-    Object.entries(document.parsedData).forEach(([key, value]) => {
-      parsedFields.push({
-        name: key,
-        value: value !== null ? String(value) : null,
-        status: value !== null ? "found" : "missing",
-      });
-    });
-  }
-
-  const isPdf = document.type === "application/pdf";
-  const isImage = document.type.startsWith("image/");
+  const isPdf = document.fileType === "application/pdf";
 
   return (
     <Card className="border-slate-200 shadow-lg rounded-xl h-full flex flex-col">
       <CardHeader className="px-4 py-3 border-b bg-slate-50">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium text-slate-800">
-            {document.name}
-          </CardTitle>
+          <div className="flex items-center gap-2 max-w-[70%]">
+            <CardTitle className="text-lg font-medium text-slate-800 truncate">
+              {document.fileName}
+            </CardTitle>
+            <Badge
+              variant="outline"
+              className="text-xs font-normal text-slate-600"
+            >
+              {document.fileType}
+            </Badge>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -106,14 +143,25 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
               <Download className="h-4 w-4 mr-1" />
               Download
             </Button>
+            <button
+              onClick={onToggleFullscreen}
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              title={isFullscreen ? "Exit fullscreen" : "View fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4 text-slate-500" />
+              ) : (
+                <Maximize2 className="h-4 w-4 text-slate-500" />
+              )}
+            </button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 p-0 flex flex-col">
+      <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="flex-1 flex flex-col"
+          className="flex-1 flex flex-col h-full"
         >
           <div className="border-b">
             <TabsList className="bg-transparent p-0 h-auto">
@@ -141,17 +189,16 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             </TabsList>
           </div>
 
-          <TabsContent value="preview" className="flex-1 p-0 m-0">
-            <div className="h-full overflow-auto bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
-              <div className="text-xl font-bold bg-yellow-200 p-4 mb-4 border-2 border-yellow-500 rounded-md">
-                {document.url}
-              </div>
+          <TabsContent
+            value="preview"
+            className="flex-1 p-0 m-0 h-full overflow-hidden"
+          >
+            <div className="h-full w-full overflow-auto bg-gradient-to-b from-slate-50 to-white">
               {isPdf ? (
                 <iframe
-                  src={document.url}
+                  src={`https://docs.google.com/gview?url=${document.url}&embedded=true`}
                   className="w-full h-full border-0"
-                  title={document.name}
-                  sandbox="allow-scripts allow-same-origin"
+                  title={document.fileName}
                 />
               ) : (
                 <div className="text-center p-6 space-y-4">
@@ -175,73 +222,81 @@ export function DocumentViewer({ document }: DocumentViewerProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="json" className="flex-1 p-4 m-0">
+          <TabsContent
+            value="json"
+            className="flex-1 p-4 m-0 h-full overflow-hidden"
+          >
             <div className="h-full bg-slate-900 text-slate-50 p-4 rounded-xl overflow-auto">
-              <pre className="text-sm font-mono">
-                {document.parsedData
-                  ? JSON.stringify(document.parsedData, null, 2)
-                  : "No parsed data available for this document."}
+              <pre className="text-sm font-mono whitespace-pre-wrap break-words">
+                {document.extractedData
+                  ? JSON.stringify(document.extractedData, null, 2)
+                  : "No extracted data available for this document."}
               </pre>
             </div>
           </TabsContent>
 
-          <TabsContent value="table" className="flex-1 p-4 m-0">
-            {parsedFields.length > 0 ? (
+          <TabsContent
+            value="table"
+            className="flex-1 p-4 m-0 h-full overflow-hidden"
+          >
+            {document.extractedData ? (
               <div className="h-full overflow-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100">
-                      <th className="text-left p-3 border border-slate-200">
-                        Field
-                      </th>
-                      <th className="text-left p-3 border border-slate-200">
-                        Value
-                      </th>
-                      <th className="text-left p-3 border border-slate-200">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {parsedFields.map((field, index) => (
-                      <tr key={index} className="border-b border-slate-200">
-                        <td className="p-3 border border-slate-200 font-medium">
-                          {field.name}
-                        </td>
-                        <td className="p-3 border border-slate-200">
-                          {field.value !== null ? (
-                            field.value
-                          ) : (
-                            <span className="text-red-500">Missing</span>
-                          )}
-                        </td>
-                        <td className="p-3 border border-slate-200">
-                          {field.status === "found" ? (
-                            <Badge
-                              variant="success"
-                              className="flex items-center gap-1 w-fit bg-green-100 text-green-800"
-                            >
-                              <CheckCircle className="h-3 w-3" />
-                              Found
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="destructive"
-                              className="flex items-center gap-1 w-fit bg-red-100 text-red-800"
-                            >
-                              <AlertCircle className="h-3 w-3" />
-                              Missing
-                            </Badge>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="space-y-6 max-w-full">
+                  {Object.entries(document.extractedData).map(
+                    ([section, data]) => (
+                      <div
+                        key={section}
+                        className="bg-white rounded-lg shadow-sm p-4 w-full"
+                      >
+                        <h3 className="text-lg font-semibold text-slate-800 mb-3">
+                          {formatKey(section)}
+                        </h3>
+                        {typeof data === "object" && data !== null ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                            {Object.entries(data).map(([key, value]) => (
+                              <div key={key} className="break-words w-full">
+                                <p className="text-sm font-medium text-slate-500 mb-1">
+                                  {formatKey(key)}
+                                </p>
+                                {typeof value === "object" && value !== null ? (
+                                  <div className="mt-2 space-y-2 bg-slate-50 p-3 rounded-md w-full">
+                                    {Object.entries(value).map(
+                                      ([subKey, subValue]) => (
+                                        <div
+                                          key={subKey}
+                                          className="flex flex-col sm:flex-row sm:justify-between gap-1 w-full"
+                                        >
+                                          <span className="text-sm font-medium text-slate-600">
+                                            {formatKey(subKey)}:
+                                          </span>
+                                          <span className="text-sm text-slate-800 break-words">
+                                            {safeToString(subValue)}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-slate-800 break-words">
+                                    {safeToString(value)}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-slate-800 break-words">
+                            {safeToString(data)}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
             ) : (
               <div className="h-full flex items-center justify-center text-slate-500">
-                No parsed data available for this document.
+                No extracted data available for this document.
               </div>
             )}
           </TabsContent>

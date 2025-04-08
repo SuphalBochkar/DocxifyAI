@@ -3,8 +3,8 @@ import { prisma } from "../lib/prisma";
 import { multerS3Upload } from "../lib/bucket";
 import { HttpStatus } from "../lib/types";
 import { uploadLimiter } from "../lib/limiter";
-import { extractTextFromS3 } from "../lib/textract";
-import { extractDocumentData } from "../lib/OpenAPI";
+import { extractTextFromS3WithFallback } from "../lib/textract";
+import { getJSONFormatData } from "../lib/OpenAPI";
 
 export const router = express.Router();
 
@@ -34,7 +34,7 @@ export const router = express.Router();
 //       );
 
 //       // Extract structured data using OpenAI with both text and document URL
-//       const extractedData = await extractDocumentData(
+//       const extractedData = await getJSONFormatData(
 //         extractedText,
 //         file.location
 //       );
@@ -138,7 +138,7 @@ router.post("/extract/:documentId", async (req: Request, res: Response) => {
       data: { status: "EXTRACTING" },
     });
 
-    const extractedText = await extractTextFromS3(
+    const extractedText = await extractTextFromS3WithFallback(
       process.env.AWS_BUCKET_NAME!,
       document.fileName
     );
@@ -194,7 +194,7 @@ router.post("/process/:documentId", async (req: Request, res: Response) => {
       data: { status: "PROCESSING" },
     });
 
-    const processedData = await extractDocumentData(
+    const processedData = await getJSONFormatData(
       document.content,
       document.url || ""
     );
@@ -287,7 +287,7 @@ router.post(
       const ip = req.ip || req.socket.remoteAddress || "Unknown";
       const file = req.file as Express.MulterS3.File;
 
-      // Create initial document record
+      //
       const document = await prisma.document.create({
         data: {
           fileName: file.key,
@@ -301,22 +301,18 @@ router.post(
         },
       });
 
-      // Start background processing
       (async () => {
         try {
-          // Update status to EXTRACTING
           await prisma.document.update({
             where: { id: document.id },
             data: { status: "EXTRACTING" },
           });
 
-          // Extract text
-          const extractedText = await extractTextFromS3(
+          const extractedText = await extractTextFromS3WithFallback(
             process.env.AWS_BUCKET_NAME!,
             document.fileName
           );
 
-          // Update status to EXTRACTED and save content
           await prisma.document.update({
             where: { id: document.id },
             data: {
@@ -325,19 +321,16 @@ router.post(
             },
           });
 
-          // Update status to PROCESSING
           await prisma.document.update({
             where: { id: document.id },
             data: { status: "PROCESSING" },
           });
 
-          // Process with OpenAI
-          const processedData = await extractDocumentData(
+          const processedData = await getJSONFormatData(
             extractedText,
             document.url || ""
           );
 
-          // Update final status and save processed data
           await prisma.document.update({
             where: { id: document.id },
             data: {
@@ -354,7 +347,6 @@ router.post(
         }
       })();
 
-      // Immediately return the document ID to the client
       res.status(HttpStatus.ACCEPTED).json({
         message: "Document upload initiated. Processing started.",
         documentId: document.id,
