@@ -9,6 +9,10 @@ import {
   Search,
   SortAsc,
   SortDesc,
+  Download,
+  Clock,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import type { Document } from "../../lib/types";
 import { Button } from "../ui/button";
@@ -53,11 +57,67 @@ export function DocumentList({
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
+  const getFileIcon = (fileType: string) => {
+    if (fileType.includes("pdf")) return "text-red-500";
+    if (fileType.includes("word") || fileType.includes("doc"))
+      return "text-blue-500";
+    if (fileType.includes("excel") || fileType.includes("sheet"))
+      return "text-green-500";
+    if (fileType.includes("image")) return "text-purple-500";
+    return "text-slate-500";
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "processed":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Processed
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case "failed":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Failed
+          </Badge>
+        );
+      default:
+        return (
+          <Badge
+            variant="outline"
+            className="bg-slate-50 text-slate-700 border-slate-200"
+          >
+            {status || "Unknown"}
+          </Badge>
+        );
+    }
+  };
+
   const filteredDocuments = documents
-    .filter((doc) => doc.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((doc) =>
+      doc.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     .sort((a, b) => {
-      const dateA = new Date(a.uploadedAt).getTime();
-      const dateB = new Date(b.uploadedAt).getTime();
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
 
@@ -107,64 +167,90 @@ export function DocumentList({
                 <div
                   key={doc.id}
                   className={cn(
-                    "p-3 hover:bg-slate-50 cursor-pointer transition-all duration-200",
+                    "p-4 hover:bg-slate-50 cursor-pointer transition-all duration-200",
                     selectedDocumentId === doc.id &&
                       "bg-blue-50 hover:bg-blue-50"
                   )}
                   onClick={() => onSelectDocument(doc)}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="bg-slate-100 rounded-xl p-2 flex-shrink-0">
-                      <FileText className="h-6 w-6 text-blue-800" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-medium text-slate-800 truncate">
-                          {doc.name}
-                        </h3>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {selectedDocumentId === doc.id && (
-                            <Badge
-                              variant="default"
-                              className="shrink-0 bg-blue-800 text-white"
-                            >
-                              Selected
-                            </Badge>
+                  <div className="flex flex-col gap-2">
+                    {/* Document header with name and actions */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div
+                          className={cn(
+                            "bg-slate-100 rounded-xl p-2 flex-shrink-0",
+                            getFileIcon(doc.fileType)
                           )}
-                          {onDeleteDocument && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onDeleteDocument(doc.id);
-                                    }}
-                                    className="h-7 w-7 p-0 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete document</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
+                        >
+                          <FileText className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-slate-800 truncate">
+                            {doc.fileName}
+                          </h3>
+                          <div className="mt-1">
+                            {getStatusBadge(doc.status)}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <FileType className="h-3 w-3" />
-                          {doc.type}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {selectedDocumentId === doc.id && (
+                          <Badge
+                            variant="default"
+                            className="shrink-0 bg-blue-800 text-white"
+                          >
+                            Selected
+                          </Badge>
+                        )}
+                        {onDeleteDocument && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteDocument(doc.id);
+                                  }}
+                                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete document</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Document details */}
+                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 pl-12">
+                      <div className="flex items-center gap-1">
+                        <FileType className="h-3 w-3 text-slate-400" />
+                        <span className="truncate">{doc.fileType}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 text-slate-400" />
+                        <span className="truncate">
+                          {formatDate(doc.createdAt)}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(doc.uploadedAt)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Download className="h-3 w-3 text-slate-400" />
+                        <span className="truncate">
+                          {formatFileSize(doc.fileSize)}
                         </span>
-                        <span>{formatFileSize(doc.size)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FileText className="h-3 w-3 text-slate-400" />
+                        <span className="truncate">
+                          ID: {doc.id.substring(0, 8)}...
+                        </span>
                       </div>
                     </div>
                   </div>

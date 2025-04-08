@@ -69,7 +69,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Fetch Error:", error);
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: "Failed to fetch documents",
+      error: "Failed to fetch document details",
       details: (error as Error).message,
     });
   }
