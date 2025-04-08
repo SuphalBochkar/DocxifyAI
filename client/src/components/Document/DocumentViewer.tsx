@@ -13,6 +13,7 @@ import {
   Loader2,
   Maximize2,
   Minimize2,
+  GitCompare,
 } from "lucide-react";
 import type { Document } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,47 @@ export function DocumentViewer({
   onToggleFullscreen,
 }: DocumentViewerProps) {
   const [activeTab, setActiveTab] = useState<string>("preview");
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationData, setValidationData] = useState<{
+    message: string;
+    differences: Array<[string, string, any, any?]>;
+  } | null>(null);
+
+  const handleValidate = async () => {
+    if (!document) return;
+
+    setIsValidating(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      //   const response = await axios.post(
+      //     `http://localhost:8080/api/v1/agent/validate/${document.id}`
+      //   );
+      //   if (response.status !== 200) {
+      //     console.log(response.data);
+      //     return;
+      //   }
+      //   setValidationData(response.data);
+
+      setValidationData({
+        message: "Document validated successfully",
+        differences: [
+          ["+", "totalAmount", 1250.5],
+          ["~", "invoiceDate", "2023-05-01", "2023-05-10"],
+          ["+", "taxAmount", 112.55],
+          ["~", "invoiceNumber", "INV-001", "INV-2023-001"],
+        ],
+      });
+
+      setActiveTab("diff");
+    } catch (error) {
+      console.error("Validation error:", error);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  console.log("Validation Data", validationData);
 
   if (isLoading) {
     return (
@@ -126,13 +168,15 @@ export function DocumentViewer({
               variant="outline"
               size="sm"
               className="h-8 bg-blue-600 text-white hover:bg-blue-500 border-blue-600"
-              onClick={() => {
-                // Placeholder for validate function
-                console.log("Validate document:", document.id);
-              }}
+              onClick={handleValidate}
+              disabled={isValidating}
             >
-              <ShieldCheck className="h-4 w-4 mr-1" />
-              Validate
+              {isValidating ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 mr-1" />
+              )}
+              {isValidating ? "Validating..." : "Validate"}
             </Button>
             <Button
               variant="outline"
@@ -185,6 +229,19 @@ export function DocumentViewer({
               >
                 <Table2 className="h-4 w-4 mr-2" />
                 Table View
+              </TabsTrigger>
+              <TabsTrigger
+                value="diff"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-800 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 transition-all duration-200"
+                disabled={!validationData}
+              >
+                <GitCompare className="h-4 w-4 mr-2" />
+                Diff View
+                {!validationData && (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Run validation first
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -297,6 +354,127 @@ export function DocumentViewer({
             ) : (
               <div className="h-full flex items-center justify-center text-slate-500">
                 No extracted data available for this document.
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent
+            value="diff"
+            className="flex-1 p-4 m-0 h-full overflow-hidden"
+          >
+            {validationData ? (
+              <div className="h-full overflow-auto">
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg shadow-sm p-4">
+                    {validationData.differences &&
+                    validationData.differences.length > 0 ? (
+                      <div className="space-y-4">
+                        <h4 className="text-md font-medium text-slate-700">
+                          Differences Found ({validationData.differences.length}
+                          )
+                        </h4>
+                        <div className="space-y-2">
+                          {validationData.differences.map((diff, index) => {
+                            const [type, path, oldValue, newValue] = diff;
+                            return (
+                              <div
+                                key={index}
+                                className={`p-3 rounded-md ${
+                                  type === "+"
+                                    ? "bg-green-50 border border-green-200"
+                                    : type === "-"
+                                    ? "bg-red-50 border border-red-200"
+                                    : "bg-yellow-50 border border-yellow-200"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span
+                                    className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                      type === "+"
+                                        ? "bg-green-200 text-green-800"
+                                        : type === "-"
+                                        ? "bg-red-200 text-red-800"
+                                        : "bg-yellow-200 text-yellow-800"
+                                    }`}
+                                  >
+                                    {type === "+"
+                                      ? "Added"
+                                      : type === "-"
+                                      ? "Removed"
+                                      : "Changed"}
+                                  </span>
+                                  <span className="text-sm font-medium text-slate-700">
+                                    {path}
+                                  </span>
+                                </div>
+                                {type === "~" ? (
+                                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                                    <div className="bg-white p-2 rounded border border-red-100">
+                                      <span className="text-red-600 font-medium">
+                                        Old:{" "}
+                                      </span>
+                                      <span className="text-slate-700">
+                                        {safeToString(oldValue)}
+                                      </span>
+                                    </div>
+                                    <div className="bg-white p-2 rounded border border-green-100">
+                                      <span className="text-green-600 font-medium">
+                                        New:{" "}
+                                      </span>
+                                      <span className="text-slate-700">
+                                        {safeToString(newValue)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="bg-white p-2 rounded border mt-2 text-sm">
+                                    <span
+                                      className={`font-medium ${
+                                        type === "+"
+                                          ? "text-green-600"
+                                          : "text-red-600"
+                                      }`}
+                                    >
+                                      {type === "+" ? "Value: " : "Was: "}
+                                    </span>
+                                    <span className="text-slate-700">
+                                      {safeToString(
+                                        type === "+" ? newValue : oldValue
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                        <p className="text-green-800 font-medium">
+                          No differences found
+                        </p>
+                        <p className="text-green-700 text-sm mt-1">
+                          The document data is consistent with the expected
+                          format.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-500">
+                <div className="text-center space-y-4">
+                  <GitCompare className="h-16 w-16 text-slate-300 mx-auto" />
+                  <h3 className="text-lg font-medium text-slate-800">
+                    No validation data available
+                  </h3>
+                  <p className="text-slate-500 max-w-md">
+                    Click the &quot;Validate&quot; button to compare the
+                    document data with the expected format.
+                  </p>
+                </div>
               </div>
             )}
           </TabsContent>

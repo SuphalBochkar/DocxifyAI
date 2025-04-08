@@ -225,16 +225,6 @@ export default function Agent() {
     setIsFullscreenViewer(!isFullscreenViewer);
   };
 
-  const NoDocumentSelected = () => (
-    <div className="flex flex-col items-center justify-center h-full text-slate-500">
-      <FileSearch className="h-16 w-16 mb-4 text-slate-300" />
-      <p className="text-lg font-medium">No document selected</p>
-      <p className="mt-2 text-sm text-center">
-        Select a document from the list to view it here
-      </p>
-    </div>
-  );
-
   const EmptyDocumentList = () => (
     <div className="flex flex-col items-center justify-center h-full text-slate-500">
       <FileText className="h-16 w-16 mb-4 text-slate-300" />

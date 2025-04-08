@@ -326,15 +326,15 @@ router.post(
             data: { status: "PROCESSING" },
           });
 
-          const processedData = await getJSONFormatData(
-            extractedText,
-            document.url || ""
-          );
+        //   const processedData = await getJSONFormatData(
+        //     extractedText,
+        //     document.url || ""
+        //   );
 
           await prisma.document.update({
             where: { id: document.id },
             data: {
-              extractedData: processedData,
+              extractedData: {},
               status: "PROCESSED",
             },
           });
