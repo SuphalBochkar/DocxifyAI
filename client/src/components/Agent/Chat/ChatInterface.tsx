@@ -29,8 +29,14 @@ export function ChatInterface({
   const [isLoading, setLocalLoading] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [assistantId, setAssistantId] = useState<string | null>(null);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(
+    null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Track if initialization is in progress to prevent duplicate calls
+  const initializingRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,7 +57,10 @@ export function ChatInterface({
   }, [input]);
 
   const initializeChat = useCallback(async () => {
-    if (!selectedDocument) return;
+    if (!selectedDocument || initializingRef.current) return;
+
+    // Set flag to prevent multiple initializations
+    initializingRef.current = true;
 
     try {
       setLocalLoading(true);
@@ -76,6 +85,9 @@ export function ChatInterface({
       setThreadId(data.threadId);
       setAssistantId(data.assistantId);
 
+      // Update current document ID after successful initialization
+      setCurrentDocumentId(selectedDocument.id);
+
       // Add welcome message
       setMessages([
         {
@@ -98,18 +110,28 @@ export function ChatInterface({
       ]);
     } finally {
       setLocalLoading(false);
+      initializingRef.current = false;
     }
   }, [selectedDocument, setMessages]);
 
+  // Only trigger initialization when the document ID changes
   useEffect(() => {
-    if (selectedDocument && !threadId) {
-      initializeChat();
-    } else if (!selectedDocument) {
+    // If no document is selected, reset state
+    if (!selectedDocument) {
       setThreadId(null);
       setAssistantId(null);
+      setCurrentDocumentId(null);
       setMessages([]);
+      return;
     }
-  }, [selectedDocument, initializeChat, threadId, setMessages]);
+
+    // If document ID has changed, reset and initialize
+    if (selectedDocument.id !== currentDocumentId) {
+      setThreadId(null);
+      setAssistantId(null);
+      initializeChat();
+    }
+  }, [selectedDocument, currentDocumentId, initializeChat, setMessages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,14 +310,14 @@ export function ChatInterface({
               onKeyDown={handleKeyDown}
               placeholder="Ask about the document..."
               className="w-full min-h-[48px] max-h-[160px] px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-800 focus:border-transparent resize-none transition-all duration-200 bg-slate-50/50 pr-12 overflow-auto outline-none shadow-sm text-sm text-slate-800 placeholder:text-slate-400"
-              disabled={isLoading}
+              disabled={isLoading || !threadId}
               rows={1}
               style={{ scrollbarWidth: "none" }}
             />
           </div>
           <Button
             type="submit"
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || !threadId}
             className="bg-gradient-to-r from-blue-800 to-blue-900 hover:from-blue-900 hover:to-blue-800 text-white rounded-xl p-3 transition-all duration-200 flex-shrink-0 shadow-sm hover:shadow-md h-[48px] w-[48px]"
           >
             {isLoading ? (

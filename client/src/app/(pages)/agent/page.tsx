@@ -89,6 +89,9 @@ export default function Agent() {
   const handleSelectDocument = async (document: Document) => {
     setIsLoadingDocumentDetails(true);
     try {
+      // Clear the messages when a new document is selected
+      setMessages([]);
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/records/${document.id}`
       );
@@ -121,6 +124,7 @@ export default function Agent() {
       // Reset selected document if it was deleted
       if (selectedDocument?.id === documentId) {
         setSelectedDocument(null);
+        setMessages([]);
       }
     } catch (error) {
       console.error("Error deleting document:", error);
@@ -191,6 +195,7 @@ export default function Agent() {
                     }}
                     setMessages={setMessages}
                     setIsLoading={setIsLoadingDocumentDetails}
+                    key={selectedDocument.id}
                   />
                 ) : (
                   <SelectDocChat />
