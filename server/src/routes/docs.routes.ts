@@ -5,11 +5,13 @@ import { HttpStatus } from "../lib/types";
 import { uploadLimiter } from "../lib/limiter";
 import { extractTextFromS3WithFallback } from "../lib/textract";
 import { getJSONFormatData } from "../lib/OpenAPI";
-
+import { getJSONFormatDataPrompt } from "../lib/prompts";
+import { documentExtractionHandler } from "../handlers/extract.handler";
+import { documentProcessingHandler } from "../handlers/process.handler";
 export const router = express.Router();
 
 /**
- * @route POST /api/v1/docs
+ * @route POST /api/v1/docs/upload
  * @description Upload file to S3 and save metadata in Prisma
  */
 // router.post(
@@ -69,7 +71,7 @@ export const router = express.Router();
 // );
 
 /**
- * @route POST /api/v1/docs
+ * @route POST /api/v1/docs/upload
  * @description Upload file to S3 and save metadata in Prisma
  */
 
@@ -196,6 +198,7 @@ router.post("/process/:documentId", async (req: Request, res: Response) => {
 
     const processedData = await getJSONFormatData(
       document.content,
+      getJSONFormatDataPrompt,
       document.url || ""
     );
 
@@ -224,6 +227,107 @@ router.post("/process/:documentId", async (req: Request, res: Response) => {
     });
   }
 });
+
+/**
+ * @route POST /api/v1/docs/procedure
+ * @description Unified endpoint for document upload, extraction, and processing
+ */
+router.post(
+  "/procedure",
+  uploadLimiter,
+  multerS3Upload.single("file"),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        res.status(HttpStatus.BAD_REQUEST).json({ error: "No file uploaded" });
+        return;
+      }
+
+      const ip = req.ip || req.socket.remoteAddress || "Unknown";
+      const file = req.file as Express.MulterS3.File;
+
+      const document = await prisma.document.create({
+        data: {
+          fileName: file.key,
+          fileType: file.mimetype,
+          fileSize: file.size,
+          url: file.location,
+          IP: ip,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          status: "PENDING",
+        },
+      });
+
+      (async () => {
+        try {
+          const extractedText = await documentExtractionHandler({
+            document,
+          });
+          await documentProcessingHandler({
+            document,
+            extractedText,
+          });
+
+          //   await prisma.document.update({
+          //     where: { id: document.id },
+          //     data: { status: "EXTRACTING" },
+          //   });
+
+          //   const extractedText = await extractTextFromS3WithFallback(
+          //     process.env.AWS_BUCKET_NAME!,
+          //     document.fileName
+          //   );
+
+          //   await prisma.document.update({
+          //     where: { id: document.id },
+          //     data: {
+          //       status: "EXTRACTED",
+          //       content: extractedText,
+          //     },
+          //   });
+
+          //   await prisma.document.update({
+          //     where: { id: document.id },
+          //     data: { status: "PROCESSING" },
+          //   });
+
+          //   const processedData = await getJSONFormatData(
+          //     extractedText,
+          //     getJSONFormatDataPrompt,
+          //     document.url || ""
+          //   );
+
+          //   await prisma.document.update({
+          //     where: { id: document.id },
+          //     data: {
+          //       extractedData: processedData,
+          //       status: "PROCESSED",
+          //     },
+          //   });
+        } catch (error) {
+          console.error("Background processing error:", error);
+          await prisma.document.update({
+            where: { id: document.id },
+            data: { status: "FAILED" },
+          });
+        }
+      })();
+
+      res.status(HttpStatus.ACCEPTED).json({
+        message: "Document upload initiated. Processing started.",
+        documentId: document.id,
+        url: file.location,
+      });
+    } catch (error) {
+      console.error("Upload Error:", error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: "Failed to upload file",
+        details: (error as Error).message,
+      });
+    }
+  }
+);
 
 /**
  * @route GET /api/v1/docs/status/:documentId
@@ -268,96 +372,3 @@ router.get("/usage", async (req: Request, res: Response) => {
     uploadsRemaining: Math.max(0, 3 - uploadCount),
   });
 });
-
-/**
- * @route POST /api/v1/docs/procedure
- * @description Unified endpoint for document upload, extraction, and processing
- */
-router.post(
-  "/procedure",
-  uploadLimiter,
-  multerS3Upload.single("file"),
-  async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        res.status(HttpStatus.BAD_REQUEST).json({ error: "No file uploaded" });
-        return;
-      }
-
-      const ip = req.ip || req.socket.remoteAddress || "Unknown";
-      const file = req.file as Express.MulterS3.File;
-
-      //
-      const document = await prisma.document.create({
-        data: {
-          fileName: file.key,
-          fileType: file.mimetype,
-          fileSize: file.size,
-          url: file.location,
-          IP: ip,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          status: "PENDING",
-        },
-      });
-
-      (async () => {
-        try {
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { status: "EXTRACTING" },
-          });
-
-          const extractedText = await extractTextFromS3WithFallback(
-            process.env.AWS_BUCKET_NAME!,
-            document.fileName
-          );
-
-          await prisma.document.update({
-            where: { id: document.id },
-            data: {
-              content: extractedText,
-              status: "EXTRACTED",
-            },
-          });
-
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { status: "PROCESSING" },
-          });
-
-        //   const processedData = await getJSONFormatData(
-        //     extractedText,
-        //     document.url || ""
-        //   );
-
-          await prisma.document.update({
-            where: { id: document.id },
-            data: {
-              extractedData: {},
-              status: "PROCESSED",
-            },
-          });
-        } catch (error) {
-          console.error("Background processing error:", error);
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { status: "FAILED" },
-          });
-        }
-      })();
-
-      res.status(HttpStatus.ACCEPTED).json({
-        message: "Document upload initiated. Processing started.",
-        documentId: document.id,
-        url: file.location,
-      });
-    } catch (error) {
-      console.error("Upload Error:", error);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: "Failed to upload file",
-        details: (error as Error).message,
-      });
-    }
-  }
-);

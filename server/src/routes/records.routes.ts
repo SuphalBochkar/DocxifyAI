@@ -24,6 +24,8 @@ router.get("/", async (req: Request, res: Response) => {
         status: true,
         createdAt: true,
         url: true,
+        missingData: true,
+        validationData: true,
       },
     });
 
@@ -57,6 +59,8 @@ router.get("/:id", async (req: Request, res: Response) => {
         extractedData: true,
         status: true,
         createdAt: true,
+        missingData: true,
+        validationData: true,
       },
     });
 

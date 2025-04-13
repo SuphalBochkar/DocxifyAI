@@ -15,16 +15,11 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: "*",
   })
 );
-// app.set("trust proxy", true);
 
 app.use("/api/v1", mainRouter);
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Server is running");
-});
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Error:", err);
@@ -32,6 +27,10 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     error: "Something went wrong",
     message: err.message,
   });
+});
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Server is running");
 });
 
 const PORT = process.env.PORT || 3000;

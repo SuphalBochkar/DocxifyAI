@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -34,83 +32,93 @@ const Navbar = () => {
   return (
     <motion.nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "bg-white/40 backdrop-blur-xl shadow-sm" : "bg-transparent"
+        scrolled ? "bg-white/80 backdrop-blur-xl shadow-sm" : "bg-transparent"
       }`}
       suppressHydrationWarning
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2"
+            className="flex items-center"
           >
-            <Link href="/" className="flex items-center">
-              {/* <Sparkles className="h-6 w-6 text-blue-800" /> */}
-              <span className="text-xl font-bold text-blue-800">
-                DocxifyAI
-              </span>
+            <Link href="/" className="group">
+              <div className="flex items-baseline space-x-0.5">
+                <span className="text-lg font-bold text-slate-800">
+                  Docxify
+                </span>
+                <span className="text-lg font-medium bg-gradient-to-r from-blue-800 to-slate-700 bg-clip-text text-transparent">
+                  AI
+                </span>
+              </div>
             </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <ul className="flex items-center space-x-6">
-              {navItems.map((item, index) => {
-                const isActive = pathname === item.path;
+          <div className="hidden md:flex items-center">
+            <motion.div
+              className="bg-slate-100/80 backdrop-blur-lg rounded-full px-2 py-1.5 mx-auto"
+              initial={false}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ul className="flex items-center">
+                {navItems.map((item, index) => {
+                  const isActive = pathname === item.path;
 
-                return (
-                  <motion.li
-                    key={index}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ y: 0 }}
-                  >
-                    <Link href={item.path}>
-                      <div
-                        className={`flex items-center gap-2 transition-all duration-200 ${
-                          isActive
-                            ? "text-blue-800"
-                            : "text-slate-600 hover:text-blue-800"
-                        }`}
-                        suppressHydrationWarning
-                      >
-                        <span className="text-sm font-medium">{item.name}</span>
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeIndicator"
-                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-800"
-                            initial={false}
-                          />
-                        )}
-                      </div>
-                    </Link>
-                  </motion.li>
-                );
-              })}
-            </ul>
+                  return (
+                    <motion.li
+                      key={index}
+                      className="relative"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Link href={item.path}>
+                        <div
+                          className={`flex items-center gap-2 px-4 py-1.5 rounded-full transition-all duration-200 ${
+                            isActive
+                              ? "bg-white text-blue-800 shadow-sm"
+                              : "text-slate-600 hover:text-blue-800 hover:bg-white/50"
+                          }`}
+                          suppressHydrationWarning
+                        >
+                          {item.icon}
+                          <span className="text-sm font-medium">
+                            {item.name}
+                          </span>
+                        </div>
+                      </Link>
+                    </motion.li>
+                  );
+                })}
+              </ul>
+            </motion.div>
 
             {/* CTA Button */}
-            <Link href="/upload">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  size="sm"
-                  className="bg-blue-800 hover:bg-blue-700 text-white font-medium shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer rounded-full px-4"
+            <div className="ml-6">
+              <Link href="/upload">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Get Started
-                </Button>
-              </motion.div>
-            </Link>
+                  <Button
+                    size="sm"
+                    className="bg-blue-800 hover:bg-blue-700 text-white font-medium shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer rounded-full px-6"
+                  >
+                    Get Started
+                  </Button>
+                </motion.div>
+              </Link>
+            </div>
           </div>
 
           {/* Mobile Menu Toggle */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="md:hidden text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors"
+            className="md:hidden p-2 rounded-full hover:bg-slate-100 transition-colors"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -121,13 +129,13 @@ const Navbar = () => {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden bg-white/80 backdrop-blur-xl overflow-hidden rounded-xl shadow-lg"
+              className="md:hidden mt-4 bg-white/90 backdrop-blur-xl overflow-hidden rounded-2xl shadow-lg border border-slate-200/50"
             >
-              <div className="px-4 py-4 space-y-2">
+              <div className="p-3 space-y-1">
                 {navItems.map((item, index) => {
                   const isActive = pathname === item.path;
 
@@ -140,9 +148,9 @@ const Navbar = () => {
                     >
                       <Link href={item.path} onClick={() => setIsOpen(false)}>
                         <div
-                          className={`p-3 rounded-lg flex items-center gap-3 transition-all ${
+                          className={`p-3 rounded-xl flex items-center gap-3 transition-all ${
                             isActive
-                              ? "bg-blue-50 text-blue-800"
+                              ? "bg-slate-100 text-blue-800"
                               : "text-slate-600 hover:bg-slate-50"
                           }`}
                           suppressHydrationWarning
@@ -161,12 +169,12 @@ const Navbar = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="pt-2"
+                  className="pt-2 px-3"
                 >
                   <Link href="/upload" onClick={() => setIsOpen(false)}>
                     <Button
                       size="sm"
-                      className="w-full bg-blue-800 hover:bg-blue-700 text-white font-medium shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer rounded-full"
+                      className="w-full bg-blue-800 hover:bg-blue-700 text-white font-medium shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer rounded-xl py-5"
                     >
                       Get Started
                     </Button>
