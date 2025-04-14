@@ -1,0 +1,52 @@
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import Providers from "@/providers/providers";
+import "./globals.css";
+import Navbar from "@/components/Main/Navbar";
+// import Footer from "@/components/Main/Footer";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "DocxifyAI - Advanced AI Document Processing",
+  description:
+    "Extract, analyze, and retrieve missing information from your documents with our advanced AI assistant.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      dir="ltr"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="antialiased" suppressHydrationWarning>
+        <Providers>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow pt-16 md:pt-20">{children}</main>
+            {/* <Footer /> */}
+          </div>
+        </Providers>
+      </body>
+    </html>
+  );
+}
