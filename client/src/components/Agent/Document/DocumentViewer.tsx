@@ -33,6 +33,7 @@ interface DocumentViewerProps {
   isLoading?: boolean;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  onOperationComplete?: () => void;
 }
 
 interface ValidationResponse {
@@ -58,6 +59,7 @@ export function DocumentViewer({
   isLoading = false,
   isFullscreen = false,
   onToggleFullscreen,
+  onOperationComplete,
 }: DocumentViewerProps) {
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [isValidating, setIsValidating] = useState(false);
@@ -65,9 +67,41 @@ export function DocumentViewer({
     useState<ValidationResponse | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  const handleVerify = async () => {
+    if (!document) return;
+    setIsVerifying(true);
+
+    // await new Promise((resolve) => setTimeout(resolve, 4000));
+    // setIsVerifying(false);
+    // onOperationComplete?.();
+    // return;
+
+    try {
+      const response = await axios.post<ValidationResponse>(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/ops/verify/${document.id}`
+      );
+      if (response.status !== 200 || !response.data) {
+        console.log(response.data);
+        return;
+      }
+      setValidationData(response.data);
+      setActiveTab("json");
+      onOperationComplete?.();
+    } catch (error) {
+      console.error("Validation error:", error);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const handleValidate = async () => {
     if (!document) return;
     setIsValidating(true);
+
+    // await new Promise((resolve) => setTimeout(resolve, 4000));
+    // setIsValidating(false);
+    // onOperationComplete?.();
+    // return;
 
     try {
       const response = await axios.post<ValidationResponse>(
@@ -87,33 +121,12 @@ export function DocumentViewer({
       //       ["~", "invoiceNumber", "INV-001", "INV-2023-001"],
       //     ],
       //   });
-
       setActiveTab("diff");
+      onOperationComplete?.();
     } catch (error) {
       console.error("Validation error:", error);
     } finally {
       setIsValidating(false);
-    }
-  };
-
-  const handleVerify = async () => {
-    if (!document) return;
-    setIsVerifying(true);
-
-    try {
-      const response = await axios.post<ValidationResponse>(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/ops/verify/${document.id}`
-      );
-      if (response.status !== 200 || !response.data) {
-        console.log(response.data);
-        return;
-      }
-      setValidationData(response.data);
-      setActiveTab("json");
-    } catch (error) {
-      console.error("Validation error:", error);
-    } finally {
-      setIsVerifying(false);
     }
   };
 

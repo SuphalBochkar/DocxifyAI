@@ -23,66 +23,66 @@ export default function Agent() {
   const [isFullscreenViewer, setIsFullscreenViewer] = useState(false);
   const router = useRouter();
 
+  const fetchDocuments = async () => {
+    setIsLoadingDocuments(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/records`
+      );
+      const data = await response.json();
+      const docData = data.data || data.documents || data;
+
+      console.log("Fetched documents:", docData);
+
+      const formattedDocuments: Document[] = docData.map((doc: Document) => ({
+        id: doc.id || String(Math.random()),
+        fileName: doc.fileName || "Unnamed Document",
+        fileType: doc.fileType || "application/pdf",
+        fileSize: doc.fileSize || 0,
+        url: doc.url || "#",
+        status: doc.status || DocumentStatus.PENDING,
+        createdAt: doc.createdAt || new Date().toISOString(),
+        missingData: doc.missingData || {},
+        validationData: doc.validationData || {},
+      }));
+
+      setDocuments(formattedDocuments);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      setDocuments([
+        {
+          id: "1",
+          fileName: "Invoice-2023-001.pdf",
+          fileType: "application/pdf",
+          fileSize: 1024 * 1024 * 2.5, // 2.5MB
+          url: "https://example.com/sample.pdf",
+          status: DocumentStatus.PROCESSED,
+          createdAt: "2023-05-15T10:30:00Z",
+          updatedAt: "2023-05-15T10:30:00Z",
+          IP: "127.0.0.1",
+          missingData: {},
+          validationData: {},
+        },
+        {
+          id: "2",
+          fileName: "Contract-2023-Q2.pdf",
+          fileType: "application/pdf",
+          fileSize: 1024 * 1024 * 3.7, // 3.7MB
+          url: "https://example.com/sample2.pdf",
+          status: DocumentStatus.PROCESSED,
+          createdAt: "2023-04-20T14:15:00Z",
+          updatedAt: "2023-04-20T14:15:00Z",
+          IP: "127.0.0.1",
+          missingData: {},
+          validationData: {},
+        },
+      ]);
+    } finally {
+      setIsLoadingDocuments(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDocuments = async () => {
-      setIsLoadingDocuments(true);
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/records`
-        );
-        const data = await response.json();
-        const docData = data.data || data.documents || data;
-
-        console.log("Fetched documents:", docData);
-
-        const formattedDocuments: Document[] = docData.map((doc: Document) => ({
-          id: doc.id || String(Math.random()),
-          fileName: doc.fileName || "Unnamed Document",
-          fileType: doc.fileType || "application/pdf",
-          fileSize: doc.fileSize || 0,
-          url: doc.url || "#",
-          status: doc.status || DocumentStatus.PENDING,
-          createdAt: doc.createdAt || new Date().toISOString(),
-          missingData: doc.missingData || {},
-          validationData: doc.validationData || {},
-        }));
-
-        setDocuments(formattedDocuments);
-      } catch (error) {
-        console.error("Error fetching documents:", error);
-        setDocuments([
-          {
-            id: "1",
-            fileName: "Invoice-2023-001.pdf",
-            fileType: "application/pdf",
-            fileSize: 1024 * 1024 * 2.5, // 2.5MB
-            url: "https://example.com/sample.pdf",
-            status: DocumentStatus.PROCESSED,
-            createdAt: "2023-05-15T10:30:00Z",
-            updatedAt: "2023-05-15T10:30:00Z",
-            IP: "127.0.0.1",
-            missingData: {},
-            validationData: {},
-          },
-          {
-            id: "2",
-            fileName: "Contract-2023-Q2.pdf",
-            fileType: "application/pdf",
-            fileSize: 1024 * 1024 * 3.7, // 3.7MB
-            url: "https://example.com/sample2.pdf",
-            status: DocumentStatus.PROCESSED,
-            createdAt: "2023-04-20T14:15:00Z",
-            updatedAt: "2023-04-20T14:15:00Z",
-            IP: "127.0.0.1",
-            missingData: {},
-            validationData: {},
-          },
-        ]);
-      } finally {
-        setIsLoadingDocuments(false);
-      }
-    };
-
     fetchDocuments();
   }, []);
 
@@ -177,6 +177,7 @@ export default function Agent() {
                 isLoading={isLoadingDocumentDetails}
                 isFullscreen={isFullscreenViewer}
                 onToggleFullscreen={toggleFullscreenViewer}
+                onOperationComplete={fetchDocuments}
               />
             </div>
 
