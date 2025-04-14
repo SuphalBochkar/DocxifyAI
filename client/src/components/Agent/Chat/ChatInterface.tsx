@@ -221,6 +221,41 @@ export function ChatInterface({
     }
   };
 
+  const getCorrectFormatText = (message: ChatMessage) => {
+    if (message.role === "assistant" && message.content.startsWith("```json")) {
+      try {
+        // Extract JSON content between the backticks
+        const jsonContent = message.content.replace(
+          /```json\n([\s\S]*?)```/g,
+          "$1"
+        );
+        const parsedJson = JSON.parse(jsonContent);
+
+        return (
+          <div className="bg-slate-50 rounded-md p-3 border border-slate-200">
+            <div className="text-xs text-slate-500 mb-1 font-mono">
+              JSON Response
+            </div>
+            <div className="font-mono text-sm">
+              {Object.entries(parsedJson).map(([key, value], index) => (
+                <div key={index} className="flex items-start mb-1 last:mb-0">
+                  <span className="text-blue-600 mr-2">{key}:</span>
+                  <span className="text-slate-800 font-medium">
+                    {String(value)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+      }
+    }
+
+    return <div className="whitespace-pre-wrap">{message.content}</div>;
+  };
+
   console.log("isloading", isLoading);
   console.log("assistantId", assistantId);
   console.log("threadId", threadId);
@@ -273,7 +308,7 @@ export function ChatInterface({
               >
                 {message.role === "assistant" ? "AI Assistant" : "You"}
               </div>
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              {getCorrectFormatText(message)}
               <div
                 className={`mt-2 text-xs text-right ${
                   message.role === "assistant"
