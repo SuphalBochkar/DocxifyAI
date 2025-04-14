@@ -267,6 +267,7 @@ router.post(
           await documentProcessingHandler({
             document,
             extractedText,
+            isVerification: true,
           });
 
           //   await prisma.document.update({

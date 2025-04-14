@@ -15,10 +15,6 @@ export function getJSONFormatDataPrompt(
   documentUrl: string
 ) {
   const prompt = `
-    You are a highly intelligent AI assistant specialized in extracting structured data from invoice documents. Analyze the URL of the provided Amazon S3 bucket containing the invoice document. Be fully aware that invoice formats, field labels, and layouts may vary significantly. Your goal is to accurately extract context-driven information, using a deep understanding of typical invoice structures and the semantics of business documents. To assist you, the raw extracted text content of the document will also be provided.
-
-    Your task is to intelligently extract and organize the invoice content into a clean, flat JSON structure. Adapt dynamically to variations in terminology, field positions, and formatting by leveraging contextual clues, spatial proximity, and common invoice conventions.
-
     📝 INPUTS:
     You will be provided with:
     1. The raw extracted text from an invoice (via OCR or PDF parser).
@@ -50,7 +46,7 @@ export function getJSONFormatDataPrompt(
     }
 
     📌 FORMAT REQUIREMENTS:
-    - Return output as a flat JSON object with no extra text or comments. Use nested objects only for table data
+    - Return output as a flat JSON object with no extra text or comments.
     - Organize the response with:
       - Top-level key-value pairs
       - Use "Missing" for missing fields
@@ -83,10 +79,6 @@ export function getJSONValidationPrompt(
   extractedData?: JSON
 ) {
   const prompt = `
-    You are a highly intelligent AI assistant specialized in extracting structured data from invoice documents. Analyze the URL of the provided Amazon S3 bucket containing the invoice document. Be fully aware that invoice formats, field labels, and layouts may vary significantly. Your goal is to accurately extract context-driven information, using a deep understanding of typical invoice structures and the semantics of business documents. To assist you, the raw extracted text content of the document will also be provided.
-
-    Your task is to intelligently extract and organize the invoice content into a clean, flat JSON structure. Adapt dynamically to variations in terminology, field positions, and formatting by leveraging contextual clues, spatial proximity, and common invoice conventions.
-
     📝 INPUTS:
     You will be provided with:
     1. The raw extracted text from an invoice (via OCR or PDF parser).
@@ -108,45 +100,38 @@ export function getJSONValidationPrompt(
       },
     }
 
-    ⚠️ NOTE:
-    Document layouts and language can differ greatly. Use your contextual and semantic understanding to detect and normalize key information, even when labels or structure change.
+    Important Note:
+    - Since you are being provided with already extracted JSON data, do not modify any existing keys in this JSON when giving response. You may re-evaluate or correct the values as needed, but maintain all original key names exactly as they appear in the input JSON to ensure consistency and compatibility.
 
     🎯 OBJECTIVE:
-    Extract and return all available general information in two distinct sections:
+    Is to extract the data that is in validationData and missingData sections of the JSON. The goal is to intelligently verify and clean the data.
     1. General Data:
-    This section includes all available data generated in the document, such as key-value pairs and other general information. It also covers data that is not in a table format or grouped together, as well as simpler data where only keys and values are present without complex structure.
+    This section includes all available data generated in the document, such as key-value pairs and other general information.
     2. Table or Grouped Data:
-    This section covers data that is structured in tables or grouped forms, where the data is categorized into rows or sections that differ from the general data. It focuses on tabular or grouped information. Use context and pattern matching to correctly split rows, even if tables are unstructured in raw text.
+    This section covers data that is structured in tables or grouped forms, where the data is categorized into rows or sections that differ from the general data.
     3. Missing Data:
     This section identifies instances where data is incomplete. It includes two cases:
-    - Keys present, values missing: When the keys are available but their corresponding values are missing.
-    - Values present, keys missing: When values exist but the associated keys are missing or undefined.
+    - Keys present, values missing
+    - Values present, keys missing
     4. Validation Data:
     This section includes the keys and values that are definitively present in the document but were not captured in the already available extracted key-value JSON data.
 
     Carefully analyze the provided extracted text, the already available extracted key-value JSON data, and the original document URL.
     Your goal is to handle the missingData and validationData intelligently and accurately:
 
-    1. If any field from missingData and the validationData is actually present in the document (either in the extracted text or existing JSON data), then add that field to its correct and appropriate section in the final output (either in generalData or groupedData based on its type).
-    2. If any field from missingData and the validationData is not found in the document (neither in extracted text nor in existing JSON data), then completely remove that field from missingData and validationData — it should not appear in the final output at all.
+    1. For any keys present in validationData, verify if they actually exist in the document. If they exist in the document, add these keys and their values to the generalData section of the final output without modifying the key names. The validationData keys are assumed to be present in the document, so include them in the generalData section.
+    2. Similarly, check the keys in missingData. If any of these keys have values that can be found in the document, add them to the appropriate section (generalData or groupedData) based on their type.
 
-    ⚠️ Important: After processing, do not include missingData and validationData as a separate key or section in the final output. Only include the correctly verified and cleaned data organized in generalData and groupedData.
+    ⚠️ Important: If any field from missingData or validationData cannot be verified as present in the document (neither in extracted text nor in existing JSON data), then completely remove that field — it should not appear in the final output at all. After processing, do not include missingData and validationData as a separate key or section in the final output. Only include the correctly verified and cleaned data organized in generalData and groupedData.
 
     📌 FORMAT REQUIREMENTS:
-    - Return output as a flat JSON object with no extra text or comments. Use nested objects only for table data
-    - Organize the response with:
-      - Top-level key-value pairs
-      - Structured arrays for "groupedData"
-    - All values must be strings (except arrays)
-    - Use consistent "camelCase" for all keys
+    - Return output as a flat JSON object with no extra text or comments.
 
     Output Format:
     {
       "generalData": {
-        // All key-value pairs from the document that are definitively present in the document
       },
       "groupedData": {
-        // All tabular or grouped information with consistent structure
       },
     }
 

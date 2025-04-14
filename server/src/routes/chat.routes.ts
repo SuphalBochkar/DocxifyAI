@@ -70,7 +70,7 @@ const isQueryRelevantToDocument = (query: string): boolean => {
 
 async function createAssistantForDocument(document: PrismaDocument) {
   const assistant = await openai.beta.assistants.create({
-    name: `Document Assistant - ${document.fileName}`,
+    name: `Document Assistant`,
     instructions: `You are a helpful assistant that analyzes documents. You can help users understand the content of their documents, extract key information, and answer questions about the document's content. You have access to the document's content and can analyze both text and JSON data.`,
     model: "gpt-4-turbo-preview",
     tools: [{ type: "code_interpreter" }, { type: "file_search" }],

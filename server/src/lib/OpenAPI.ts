@@ -18,13 +18,15 @@ export async function getJSONFormatData(
     extractedData?: JSON
   ) => string,
   documentUrl: string,
-  extractedData?: JSON
+  extractedData?: any
 ): Promise<any> {
   const userPrompt = getPromptFunction(
     documentText,
     documentUrl,
     extractedData
   );
+
+  console.log("[OpenAI User Prompt]:", userPrompt);
 
   try {
     const response = await openai.chat.completions.create({
@@ -42,7 +44,7 @@ export async function getJSONFormatData(
       throw new Error("No response content from OpenAI.");
     }
 
-    const cleaned = cleanJSONOutput(rawMessage);
+    const cleaned = cleanJSONOutput(rawMessage || "");
     console.log("[OpenAI Raw Response]:", rawMessage);
     console.log("[Parsed JSON]:", cleaned);
 

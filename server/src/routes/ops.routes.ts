@@ -83,8 +83,7 @@ router.post("/validate/:id", async (req: Request, res: Response) => {
     const existingData =
       typeof document.extractedData === "string"
         ? JSON.parse(document.extractedData)
-        : {};
-    // const existingData = document.extractedData || {};
+        : document.extractedData;
 
     const newExtractedData = await getJSONFormatData(
       rawText,
@@ -116,11 +115,64 @@ router.post("/validate/:id", async (req: Request, res: Response) => {
       message: "Document validated successfully",
       documentId: id,
       differences,
+      extractedData: newExtractedData,
     });
   } catch (error) {
     console.error("Error processing document:", error);
     res.status(500).json({
       error: "Failed to process document",
+      details: (error as Error).message,
+    });
+  }
+});
+
+/**
+ * @route POST /api/v1/ops/validation-update/:id
+ * @description Update document validation status based on user action
+ */
+
+router.post("/validation-update/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { action, validatedData } = req.body;
+
+  console.log("validatedData: ", validatedData);
+  console.log("action: ", action);
+
+  if (!id || !action || !validatedData) {
+    res.status(400).json({ error: "Missing required parameters" });
+    return;
+  }
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      select: { extractedData: true },
+    });
+
+    if (!document) {
+      res.status(404).json({ error: "Document not found" });
+      return;
+    }
+
+    if (action === "approve") {
+      await prisma.document.update({
+        where: { id },
+        data: {
+          extractedData: validatedData,
+          validationData: {},
+          missingData: {},
+        },
+      });
+    }
+
+    res.status(200).json({
+      message: `Document ${action}d successfully`,
+      documentId: id,
+    });
+  } catch (error) {
+    console.error("Error updating validation:", error);
+    res.status(500).json({
+      error: "Failed to update validation",
       details: (error as Error).message,
     });
   }
