@@ -16,6 +16,9 @@ import {
   GitCompare,
   AlertCircle,
   Clock,
+  Plus,
+  Minus,
+  RefreshCw,
 } from "lucide-react";
 import type { Document } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +43,7 @@ interface ValidationResponse {
   differences: Array<
     [string, string, string | number, string | number | undefined]
   >;
+  extractedData?: unknown;
 }
 
 const safeToString = (value: string | number | null | undefined): string => {
@@ -122,11 +126,35 @@ export function DocumentViewer({
       //     ],
       //   });
       setActiveTab("diff");
-      onOperationComplete?.();
+      //   onOperationComplete?.();
     } catch (error) {
       console.error("Validation error:", error);
     } finally {
       setIsValidating(false);
+    }
+  };
+
+  console.log("validationData", validationData);
+
+  const handleValidationUpdate = async (action: "approve" | "reject") => {
+    if (!document || !validationData) return;
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/ops/validation-update/${document.id}`,
+        {
+          action,
+          validatedData: validationData.extractedData,
+        }
+      );
+
+      if (response.status === 200) {
+        onOperationComplete?.();
+        setValidationData(null);
+        setActiveTab("table");
+      }
+    } catch (error) {
+      console.error("Error updating validation:", error);
     }
   };
 
@@ -172,7 +200,7 @@ export function DocumentViewer({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 bg-blue-600 text-white hover:bg-blue-500 hover:shadow-md hover:scale-[1.02] border-blue-600 shadow-sm transition-all duration-200 text-xs"
+              className="hidden h-7 bg-blue-600 text-white hover:bg-blue-500 hover:shadow-md hover:scale-[1.02] border-blue-600 shadow-sm transition-all duration-200 text-xs"
               onClick={handleVerify}
               disabled={isVerifying}
             >
@@ -585,79 +613,97 @@ export function DocumentViewer({
                     {validationData.differences &&
                     validationData.differences.length > 0 ? (
                       <div className="space-y-4">
-                        <h4 className="text-md font-medium text-slate-700">
-                          Differences Found ({validationData.differences.length}
-                          )
-                        </h4>
-                        <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-md font-medium text-slate-700">
+                            Changes Found ({validationData.differences.length})
+                          </h4>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              className="bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+                              onClick={() => handleValidationUpdate("reject")}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                              onClick={() => handleValidationUpdate("approve")}
+                            >
+                              Approve
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
                           {validationData.differences.map((diff, index) => {
                             const [type, path, oldValue, newValue] = diff;
+                            const fieldName = path.split(".").pop() || "";
+
                             return (
                               <div
                                 key={index}
-                                className={`p-3 rounded-md ${
+                                className={`p-3 rounded-lg border ${
                                   type === "+"
-                                    ? "bg-green-50 border border-green-200"
+                                    ? "bg-green-50/50 border-green-200"
                                     : type === "-"
-                                    ? "bg-red-50 border border-red-200"
-                                    : "bg-yellow-50 border border-yellow-200"
+                                    ? "bg-red-50/50 border-red-200"
+                                    : "bg-blue-50/50 border-blue-200"
                                 }`}
                               >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span
-                                    className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div
+                                    className={`h-6 w-6 rounded-full flex items-center justify-center ${
                                       type === "+"
-                                        ? "bg-green-200 text-green-800"
+                                        ? "bg-green-100 text-green-700"
                                         : type === "-"
-                                        ? "bg-red-200 text-red-800"
-                                        : "bg-yellow-200 text-yellow-800"
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-blue-100 text-blue-700"
                                     }`}
                                   >
-                                    {type === "+"
-                                      ? "Added"
-                                      : type === "-"
-                                      ? "Removed"
-                                      : "Changed"}
-                                  </span>
-                                  <span className="text-sm font-medium text-slate-700">
-                                    {path}
+                                    {type === "+" ? (
+                                      <Plus className="h-3.5 w-3.5" />
+                                    ) : type === "-" ? (
+                                      <Minus className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <RefreshCw className="h-3.5 w-3.5" />
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-slate-700">
+                                    {formatKey(fieldName)}
                                   </span>
                                 </div>
+
                                 {type === "~" ? (
-                                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                                    <div className="bg-white p-2 rounded border border-red-100">
-                                      <span className="text-red-600 font-medium">
-                                        Old:{" "}
-                                      </span>
-                                      <span className="text-slate-700">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-white p-2 rounded border border-slate-200">
+                                      <div className="text-xs text-slate-500 mb-1">
+                                        Previous Value
+                                      </div>
+                                      <div className="text-slate-700">
                                         {safeToString(oldValue)}
-                                      </span>
+                                      </div>
                                     </div>
-                                    <div className="bg-white p-2 rounded border border-green-100">
-                                      <span className="text-green-600 font-medium">
-                                        New:{" "}
-                                      </span>
-                                      <span className="text-slate-700">
+                                    <div className="bg-white p-2 rounded border border-slate-200">
+                                      <div className="text-xs text-slate-500 mb-1">
+                                        New Value
+                                      </div>
+                                      <div className="text-slate-700">
                                         {safeToString(newValue)}
-                                      </span>
+                                      </div>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="bg-white p-2 rounded border mt-2 text-sm">
-                                    <span
-                                      className={`font-medium ${
-                                        type === "+"
-                                          ? "text-green-600"
-                                          : "text-red-600"
-                                      }`}
-                                    >
-                                      {type === "+" ? "Value: " : "Was: "}
-                                    </span>
-                                    <span className="text-slate-700">
+                                  <div className="bg-white p-2 rounded border border-slate-200">
+                                    <div className="text-xs text-slate-500 mb-1">
+                                      {type === "+"
+                                        ? "Added Value"
+                                        : "Removed Value"}
+                                    </div>
+                                    <div className="text-slate-700">
                                       {safeToString(
-                                        type === "+" ? newValue : oldValue
+                                        type === "+" ? oldValue : oldValue
                                       )}
-                                    </span>
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -666,13 +712,15 @@ export function DocumentViewer({
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                        <p className="text-green-800 font-medium">
-                          No differences found
-                        </p>
-                        <p className="text-green-700 text-sm mt-1">
-                          The document data is consistent with the expected
-                          format.
+                      <div className="text-center py-8">
+                        <div className="bg-green-50 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <CheckCircle className="h-8 w-8 text-green-600" />
+                        </div>
+                        <h3 className="text-lg font-medium text-slate-800 mb-2">
+                          No Changes Found
+                        </h3>
+                        <p className="text-slate-600">
+                          The document data matches the expected format.
                         </p>
                       </div>
                     )}

@@ -57,7 +57,7 @@ export function VerifyValidateSkeleton({
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
-        <Tabs defaultValue="preview" className="flex-1 flex flex-col h-full">
+        <Tabs defaultValue="diff" className="flex-1 flex flex-col h-full">
           <div className="border-b border-slate-200">
             <TabsList className="bg-transparent p-0 h-auto">
               <TabsTrigger
