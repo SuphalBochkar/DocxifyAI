@@ -29,14 +29,20 @@ export function ChatInterface({
   const [isLoading, setLocalLoading] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [assistantId, setAssistantId] = useState<string | null>(null);
-  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(
-    null
-  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Track if initialization is in progress to prevent duplicate calls
   const initializingRef = useRef(false);
+  const currentDocumentRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    console.log("State updated:", {
+      threadId,
+      assistantId,
+      isLoading,
+      currentDocument: currentDocumentRef.current,
+    });
+  }, [threadId, assistantId, isLoading]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,13 +63,28 @@ export function ChatInterface({
   }, [input]);
 
   const initializeChat = useCallback(async () => {
+    // Prevent initialization if already in progress or no document
     if (!selectedDocument || initializingRef.current) return;
 
-    // Set flag to prevent multiple initializations
+    // Prevent re-initialization for same document
+    if (currentDocumentRef.current === selectedDocument.id) return;
+
     initializingRef.current = true;
+    currentDocumentRef.current = selectedDocument.id;
 
     try {
       setLocalLoading(true);
+
+      // Set welcome message immediately
+      setMessages([
+        {
+          id: "welcome",
+          role: "assistant",
+          content: `Hello! I'm your document assistant. I can help you analyze "${selectedDocument.fileName}". What would you like to know?`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/chat/thread`,
         {
@@ -82,21 +103,11 @@ export function ChatInterface({
       }
 
       const data = await response.json();
+      console.log("Thread API response:", data);
+
+      // Update states with the new thread and assistant IDs
       setThreadId(data.threadId);
       setAssistantId(data.assistantId);
-
-      // Update current document ID after successful initialization
-      setCurrentDocumentId(selectedDocument.id);
-
-      // Add welcome message
-      setMessages([
-        {
-          id: "welcome",
-          role: "assistant",
-          content: `Hello! I'm your document assistant. I can help you analyze "${selectedDocument.fileName}". What would you like to know?`,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
     } catch (error) {
       console.error("Error initializing chat:", error);
       setMessages([
@@ -114,33 +125,32 @@ export function ChatInterface({
     }
   }, [selectedDocument, setMessages]);
 
-  // Only trigger initialization when the document ID changes
   useEffect(() => {
-    // If no document is selected, reset state
+    // Reset state when no document is selected
     if (!selectedDocument) {
       setThreadId(null);
       setAssistantId(null);
-      setCurrentDocumentId(null);
+      currentDocumentRef.current = null;
       setMessages([]);
       return;
     }
 
-    // If document ID has changed, reset and initialize
-    if (selectedDocument.id !== currentDocumentId) {
+    // Initialize chat for new document
+    if (selectedDocument.id !== currentDocumentRef.current) {
       setThreadId(null);
       setAssistantId(null);
       initializeChat();
     }
-  }, [selectedDocument, currentDocumentId, initializeChat, setMessages]);
+  }, [selectedDocument, initializeChat, setMessages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !input.trim() ||
       isLoading ||
-      !selectedDocument ||
       !threadId ||
-      !assistantId
+      !assistantId ||
+      !selectedDocument
     ) {
       return;
     }
@@ -210,6 +220,10 @@ export function ChatInterface({
       handleSubmit(e);
     }
   };
+
+  console.log("isloading", isLoading);
+  console.log("assistantId", assistantId);
+  console.log("threadId", threadId);
 
   return (
     <Card className="flex flex-col h-full border-slate-200 shadow-lg rounded-xl overflow-hidden bg-gradient-to-b from-slate-50 to-white">
@@ -310,14 +324,14 @@ export function ChatInterface({
               onKeyDown={handleKeyDown}
               placeholder="Ask about the document..."
               className="w-full min-h-[48px] max-h-[160px] px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-800 focus:border-transparent resize-none transition-all duration-200 bg-slate-50/50 pr-12 overflow-auto outline-none shadow-sm text-sm text-slate-800 placeholder:text-slate-400"
-              disabled={isLoading || !threadId}
+              disabled={isLoading || !threadId || !assistantId}
               rows={1}
               style={{ scrollbarWidth: "none" }}
             />
           </div>
           <Button
             type="submit"
-            disabled={!input.trim() || isLoading || !threadId}
+            disabled={!input.trim() || isLoading || !threadId || !assistantId}
             className="bg-gradient-to-r from-blue-800 to-blue-900 hover:from-blue-900 hover:to-blue-800 text-white rounded-xl p-3 transition-all duration-200 flex-shrink-0 shadow-sm hover:shadow-md h-[48px] w-[48px]"
           >
             {isLoading ? (
