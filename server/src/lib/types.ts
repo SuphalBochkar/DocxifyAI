@@ -61,3 +61,6 @@ export enum HttpStatus {
   NOT_EXTENDED = 510,
   NETWORK_AUTHENTICATION_REQUIRED = 511,
 }
+
+import type { Prisma } from "@prisma/client";
+export type Document = Prisma.DocumentGetPayload<{}>;

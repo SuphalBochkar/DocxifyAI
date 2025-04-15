@@ -1,7 +1,7 @@
 import { getJSONFormatDataPrompt } from "../lib/prompts";
 import { getJSONFormatData } from "../lib/OpenAPI";
 import { prisma } from "../lib/prisma";
-import type { Document as PrismaDocument } from "@prisma/client";
+import type { Document as PrismaDocument } from "../lib/types";
 
 export async function documentProcessingHandler({
   document,

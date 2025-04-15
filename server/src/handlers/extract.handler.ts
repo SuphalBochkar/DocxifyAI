@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { extractTextFromS3WithFallback } from "../lib/textract";
-import type { Document as PrismaDocument } from "@prisma/client";
+import type { Document as PrismaDocument } from "../lib/types";
 
 export async function documentExtractionHandler({
   document,
