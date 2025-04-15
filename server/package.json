@@ -4,11 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon",
-    "start": "node public/index.js",
+    "dev": "nodemon --watch src --exec ts-node src/index.ts",
     "build": "tsc && prisma generate",
-    "postinstall": "tsc && prisma generate"
+    "start": "node public/index.js"
   },
   "keywords": [],
   "author": "",

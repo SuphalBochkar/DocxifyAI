@@ -33,5 +33,10 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Server is running");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server at http://localhost:${PORT}`));
+export default app;
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () =>
+    console.log(`Server running locally at http://localhost:${PORT}`)
+  );
+}
