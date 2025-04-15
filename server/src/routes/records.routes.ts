@@ -14,7 +14,7 @@ router.get("/", async (req: Request, res: Response) => {
       req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
 
     const documents = await prisma.document.findMany({
-      where: { IP: ip.toString() },
+      //   where: { IP: ip.toString() },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
