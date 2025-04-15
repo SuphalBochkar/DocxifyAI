@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch src --exec ts-node src/index.ts",
-    "build": "npx prisma generate && tsc",
-    "start": "node public/index.js"
+    "build": "tsc",
+    "start": "node public/index.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",

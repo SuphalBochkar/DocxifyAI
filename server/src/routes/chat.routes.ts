@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { Document as PrismaDocument } from "../lib/types";
+import { Document as PrismaDocument } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { openai } from "../lib/OpenAPI";
 
