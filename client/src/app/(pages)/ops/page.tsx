@@ -2,21 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { DocumentList } from "@/components/Agent/Document/DocumentList";
-import { ChatInterface } from "@/components/Agent/Chat/ChatInterface";
 import { DocumentViewer } from "@/components/Agent/Document/DocumentViewer";
 import { NoRecordsUpload } from "@/components/Agent/NoPage/NoDocsUpload";
-import type { Document, ChatMessage } from "@/lib/types";
+import type { Document } from "@/lib/types";
 import { DocumentStatus } from "@/lib/types";
 import { AgentSkeleton } from "@/components/Skeletons/AgentSkeleton";
 import { useRouter } from "next/navigation";
-import { SelectDocChat } from "@/components/Agent/NoPage/SelectDocChat";
+// import { SelectDocChat } from "@/components/Agent/NoPage/SelectDocChat";
+// import { ChatInterface } from "@/components/Agent/Chat/ChatInterface";
 
 export default function Agent() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  //   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [isLoadingDocumentDetails, setIsLoadingDocumentDetails] =
     useState(false);
@@ -31,8 +31,6 @@ export default function Agent() {
       );
       const data = await response.json();
       const docData = data.data || data.documents || data;
-
-      console.log("Fetched documents:", docData);
 
       const formattedDocuments: Document[] = docData.map((doc: Document) => ({
         id: doc.id || String(Math.random()),
@@ -90,7 +88,7 @@ export default function Agent() {
     setIsLoadingDocumentDetails(true);
     try {
       // Clear the messages when a new document is selected
-      setMessages([]);
+      //   setMessages([]);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/records/${document.id}`
@@ -124,7 +122,7 @@ export default function Agent() {
       // Reset selected document if it was deleted
       if (selectedDocument?.id === documentId) {
         setSelectedDocument(null);
-        setMessages([]);
+        // setMessages([]);
       }
     } catch (error) {
       console.error("Error deleting document:", error);
@@ -150,9 +148,9 @@ export default function Agent() {
               isFullscreenViewer ? "grid-cols-1" : "grid-cols-12"
             } gap-4 min-h-0`}
           >
-            {/* Document List - 3 columns (25%) */}
+            {/* Document List - 4 columns (33%) */}
             {!isFullscreenViewer && (
-              <div className="col-span-3 h-full overflow-hidden">
+              <div className="col-span-4 h-full overflow-hidden">
                 {documents.length > 0 ? (
                   <DocumentList
                     documents={documents}
@@ -166,10 +164,10 @@ export default function Agent() {
               </div>
             )}
 
-            {/* Document Viewer - ~5.4 columns (45%) */}
+            {/* Document Viewer - 8 columns (67%) */}
             <div
               className={`${
-                isFullscreenViewer ? "col-span-12" : "col-span-5 md:col-span-6"
+                isFullscreenViewer ? "col-span-12" : "col-span-8"
               } h-full overflow-hidden`}
             >
               <DocumentViewer
@@ -181,8 +179,8 @@ export default function Agent() {
               />
             </div>
 
-            {/* Chat Interface - ~3.6 columns (30%) */}
-            {!isFullscreenViewer && (
+            {/* Chat Interface - Commented out as requested */}
+            {/* {!isFullscreenViewer && (
               <div className="col-span-4 md:col-span-3 h-full flex flex-col overflow-hidden">
                 {selectedDocument ? (
                   <ChatInterface
@@ -202,7 +200,7 @@ export default function Agent() {
                   <SelectDocChat />
                 )}
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

@@ -8,6 +8,8 @@ import { getJSONFormatData } from "../lib/OpenAPI";
 import { getJSONFormatDataPrompt } from "../lib/prompts";
 import { documentExtractionHandler } from "../handlers/extract.handler";
 import { documentProcessingHandler } from "../handlers/process.handler";
+import { addToExtractionQueue, getJobStatus } from "../lib/queue";
+import { PDFService } from "../services/pdf.service";
 export const router = express.Router();
 
 /**
@@ -246,6 +248,7 @@ router.post(
       const ip = req.ip || req.socket.remoteAddress || "Unknown";
       const file = req.file as Express.MulterS3.File;
 
+      // Create document record
       const document = await prisma.document.create({
         data: {
           fileName: file.key,
@@ -259,65 +262,13 @@ router.post(
         },
       });
 
-      (async () => {
-        try {
-          const extractedText = await documentExtractionHandler({
-            document,
-          });
-          await documentProcessingHandler({
-            document,
-            extractedText,
-            isVerification: true,
-          });
-
-          //   await prisma.document.update({
-          //     where: { id: document.id },
-          //     data: { status: "EXTRACTING" },
-          //   });
-
-          //   const extractedText = await extractTextFromS3WithFallback(
-          //     process.env.AWS_BUCKET_NAME!,
-          //     document.fileName
-          //   );
-
-          //   await prisma.document.update({
-          //     where: { id: document.id },
-          //     data: {
-          //       status: "EXTRACTED",
-          //       content: extractedText,
-          //     },
-          //   });
-
-          //   await prisma.document.update({
-          //     where: { id: document.id },
-          //     data: { status: "PROCESSING" },
-          //   });
-
-          //   const processedData = await getJSONFormatData(
-          //     extractedText,
-          //     getJSONFormatDataPrompt,
-          //     document.url || ""
-          //   );
-
-          //   await prisma.document.update({
-          //     where: { id: document.id },
-          //     data: {
-          //       extractedData: processedData,
-          //       status: "PROCESSED",
-          //     },
-          //   });
-        } catch (error) {
-          console.error("Background processing error:", error);
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { status: "FAILED" },
-          });
-        }
-      })();
+      // Add to extraction queue
+      const job = await addToExtractionQueue(document.id);
 
       res.status(HttpStatus.ACCEPTED).json({
         message: "Document upload initiated. Processing started.",
         documentId: document.id,
+        jobId: job.id,
         url: file.location,
       });
     } catch (error) {
@@ -341,7 +292,7 @@ router.get("/status/:documentId", async (req: Request, res: Response) => {
   try {
     const document = await prisma.document.findUnique({
       where: { id: documentId },
-      select: { status: true },
+      select: { id: true, status: true },
     });
 
     if (!document) {
@@ -349,7 +300,13 @@ router.get("/status/:documentId", async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(HttpStatus.OK).json({ status: document.status });
+    // Get job status if available
+    const jobStatus = await getJobStatus(documentId);
+
+    res.status(HttpStatus.OK).json({
+      document,
+      jobStatus,
+    });
   } catch (error) {
     console.error("Error fetching document status:", error);
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -372,4 +329,64 @@ router.get("/usage", async (req: Request, res: Response) => {
     uploadsUsed: uploadCount,
     uploadsRemaining: Math.max(0, 3 - uploadCount),
   });
+});
+
+/**
+ * @route POST /api/v1/docs/pdf/extract/:documentId
+ * @description Extract text from a PDF document
+ */
+router.post("/pdf/extract/:documentId", async (req: Request, res: Response) => {
+  const { documentId } = req.params;
+
+  try {
+    const extractedText = await PDFService.extractText(documentId);
+
+    res.status(HttpStatus.OK).json({
+      message: "Text extracted successfully",
+      extractedText,
+    });
+  } catch (error) {
+    console.error("Error extracting text:", error);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: "Failed to extract text",
+      details: (error as Error).message,
+    });
+  }
+});
+
+/**
+ * @route POST /api/v1/docs/pdf/process/:documentId
+ * @description Process extracted text with OpenAI
+ */
+router.post("/pdf/process/:documentId", async (req: Request, res: Response) => {
+  const { documentId } = req.params;
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+    });
+
+    if (!document || !document.content) {
+      res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ error: "Document or text not found" });
+      return;
+    }
+
+    const processedData = await PDFService.processText(
+      documentId,
+      document.content
+    );
+
+    res.status(HttpStatus.OK).json({
+      message: "Document processed successfully",
+      processedData,
+    });
+  } catch (error) {
+    console.error("Error processing document:", error);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: "Failed to process document",
+      details: (error as Error).message,
+    });
+  }
 });
