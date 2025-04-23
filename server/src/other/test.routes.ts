@@ -41,7 +41,7 @@ router.get("/cookie", (req: Request, res: Response) => {
   }
 });
 
-router.post("/procedure", async (req: Request, res: Response) => {
+router.post("/docs/procedure", async (req: Request, res: Response) => {
   const document = await prisma.document.create({
     data: {
       fileName: "test.pdf",
@@ -83,7 +83,10 @@ router.post("/procedure", async (req: Request, res: Response) => {
     data: { status: "PROCESSED" },
   });
 
-  res.send({ message: "Document created", documentId: document.id });
+  res.send({
+    message: "Document created",
+    documentId: "67fc1531809c9ca196a02386",
+  });
 });
 
 router.get("/status/:documentId", async (req: Request, res: Response) => {

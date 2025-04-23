@@ -2,42 +2,12 @@ import express, { Request, Response } from "express";
 import { Document as PrismaDocument } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { openai } from "../lib/OpenAPI";
+import { getChatSystemPrompt } from "../lib/prompts";
 
 export const router = express.Router();
 
 const threadMap = new Map<string, string>();
 const assistantMap = new Map<string, string>();
-
-const getSystemPrompt = (document: PrismaDocument) => {
-  return `You are a chat-based AI assistant integrated into DoxifyAI, an AI-powered document extraction and validation system. Your role is to help users interact with structured data extracted from a specific PDF document.
-    Your responsibilities include the following:
-    1. Answer Questions from Document:
-    - Answer questions based on the document's content and the extracted data.
-    - When asked about a specific field (e.g., "What is the invoice number?"), respond with the key-value pair in JSON format like: {"InvoiceNo": "INV-12345"} using the exact key from the extracted JSON data.
-    - If the requested field exists in the document but is not in the extracted data, try to locate it in the document content.
-    2. Suggest Missing Values:
-    - If a field is missing or undefined in the extracted data, infer a suitable value from the document content.
-    3. Query to change the document or update in the document:
-    - If a user asks to change a key in the document, respond with  highlighting the change between two "%%" symbols in a format similar to Ruby's HashDiff JSON comparison.
-    4. Answer Document-Specific Queries:
-    - Respond to user questions strictly related to the contents, fields, or data extracted from the current document.
-    5. Maintain Accuracy and Clarity:
-    - Ensure all your answers are concise, accurate, and directly relevant to the document being processed.
-    6. Handle Unrelated Questions Appropriately:
-    - If a user asks something unrelated to this document, politely decline and explain: "I can only help with questions related to the current document."
-
-    Behavior Rules:
-    - Do not assume information that is not present in the document.
-    - Do not answer anything outside the scope of the provided document.
-    - Stay focused on helping users validate and retrieve accurate information from this document.
-
-    You are part of a validation and automation system designed to streamline GoComet's document workflows and reduce manual intervention. Your guidance should reflect that intelligence and reliability.
-    You are provided with:
-    - The full content of the document: ${document.content || "Not available"}
-    - Extracted key-value data in JSON format: ${JSON.stringify(
-      document.extractedData
-    )}`;
-};
 
 // const getSystemPrompt = (document: PrismaDocument) => {
 //   const prompt = `You are an AI document analysis assistant with expertise in extracting and interpreting information from documents. You are currently analyzing a specific document with the following details:
@@ -183,7 +153,7 @@ router.post("/message", async (req: Request, res: Response) => {
 
     const run = await openai.beta.threads.runs.create(threadId, {
       assistant_id: assistantId,
-      instructions: getSystemPrompt(document),
+      instructions: getChatSystemPrompt(document),
     });
 
     let runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);

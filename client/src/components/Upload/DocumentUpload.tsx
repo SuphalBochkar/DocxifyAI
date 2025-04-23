@@ -46,7 +46,11 @@ interface ProcessingStep {
   status: "waiting" | "processing" | "completed" | "failed";
 }
 
-export const DocumentUpload = () => {
+interface DocumentUploadProps {
+  onUploadSuccess: (documentId: string) => void;
+}
+
+export const DocumentUpload = ({ onUploadSuccess }: DocumentUploadProps) => {
   // File state
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -64,14 +68,11 @@ export const DocumentUpload = () => {
   // Processing state
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [status, setStatus] = useState<ProcessingStatus>("PENDING");
-  const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [, setError] = useState<string | null>(null);
+  const [, setProgress] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  console.log(error, progress);
-
-  // Processing steps
   const [steps, setSteps] = useState<ProcessingStep[]>([
     {
       id: "upload",
@@ -114,9 +115,11 @@ export const DocumentUpload = () => {
 
         if (!response.ok) throw new Error("Failed to get status");
 
-        setStatus(data.status);
+        const { status } = data.document;
 
-        switch (data.status) {
+        setStatus(status);
+
+        switch (status) {
           case "EXTRACTING":
             updateStepStatus("extract", "processing");
             setProgress(33);
@@ -137,6 +140,8 @@ export const DocumentUpload = () => {
             setError(null);
             setMessage("Document successfully processed");
             setMessageType("success");
+            console.log("Document Processed successfully............");
+            onUploadSuccess(docId);
             return false;
           case "FAILED":
             setSteps((steps) =>
@@ -160,7 +165,7 @@ export const DocumentUpload = () => {
         return false;
       }
     },
-    [updateStepStatus]
+    [updateStepStatus, onUploadSuccess]
   );
 
   const startProcessing = useCallback(
@@ -294,6 +299,7 @@ export const DocumentUpload = () => {
         updateStepStatus("upload", "completed");
         setDocumentId(data.documentId);
         await startProcessing(data.documentId);
+        console.log("Document uploaded successfully");
       } else {
         setError(data.error || "Upload failed");
         setMessage(data.error || "Upload failed");
@@ -614,7 +620,7 @@ export const DocumentUpload = () => {
           </Card>
 
           {/* Instructions */}
-          <Card className="border-slate-200 shadow-md overflow-hidden">
+          {/* <Card className="border-slate-200 shadow-md overflow-hidden">
             <div className="bg-gradient-to-r from-slate-50 to-white p-6 border-b border-slate-200">
               <h3 className="text-lg font-medium text-slate-800">
                 Document Processing Instructions
@@ -657,7 +663,7 @@ export const DocumentUpload = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </TabsContent>
 
         {/* Preview Tab */}
@@ -932,7 +938,7 @@ export const DocumentUpload = () => {
               {status === "PROCESSED" && (
                 <div className="flex justify-center">
                   <Button
-                    onClick={() => (window.location.href = `/agent`)}
+                    onClick={() => (window.location.href = `/ops`)}
                     className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-md hover:shadow-lg transition-all duration-300 px-8 py-6 rounded-lg"
                   >
                     <FileText className="mr-2 h-5 w-5" />

@@ -13,6 +13,8 @@ export interface ParsedField {
 }
 
 export enum DocumentStatus {
+  UPLOADING = "UPLOADING",
+  UPLOADED = "UPLOADED",
   PENDING = "PENDING",
   EXTRACTING = "EXTRACTING",
   EXTRACTED = "EXTRACTED",

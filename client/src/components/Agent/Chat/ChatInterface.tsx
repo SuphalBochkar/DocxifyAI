@@ -36,12 +36,12 @@ export function ChatInterface({
   const currentDocumentRef = useRef<string | null>(null);
 
   useEffect(() => {
-    console.log("State updated:", {
-      threadId,
-      assistantId,
-      isLoading,
-      currentDocument: currentDocumentRef.current,
-    });
+    //
+    //   threadId,
+    //   assistantId,
+    //   isLoading,
+    //   currentDocument: currentDocumentRef.current,
+    // });
   }, [threadId, assistantId, isLoading]);
 
   const scrollToBottom = () => {
@@ -103,7 +103,6 @@ export function ChatInterface({
       }
 
       const data = await response.json();
-      console.log("Thread API response:", data);
 
       // Update states with the new thread and assistant IDs
       setThreadId(data.threadId);
@@ -255,10 +254,6 @@ export function ChatInterface({
 
     return <div className="whitespace-pre-wrap">{message.content}</div>;
   };
-
-  console.log("isloading", isLoading);
-  console.log("assistantId", assistantId);
-  console.log("threadId", threadId);
 
   return (
     <Card className="flex flex-col h-full border-slate-200 shadow-lg rounded-xl overflow-hidden bg-gradient-to-b from-slate-50 to-white">

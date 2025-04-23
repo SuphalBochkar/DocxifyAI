@@ -134,8 +134,6 @@ export function DocumentViewer({
     }
   };
 
-  console.log("validationData", validationData);
-
   const handleValidationUpdate = async (action: "approve" | "reject") => {
     if (!document || !validationData) return;
 

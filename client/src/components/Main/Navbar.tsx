@@ -26,7 +26,7 @@ const Navbar = () => {
   const navItems = [
     { name: "Home", path: "/", icon: <Home className="h-4 w-4" /> },
     { name: "Upload", path: "/upload", icon: <FileText className="h-4 w-4" /> },
-    { name: "Agent", path: "/agent", icon: <Bot className="h-4 w-4" /> },
+    { name: "Ops", path: "/ops", icon: <Bot className="h-4 w-4" /> },
   ];
 
   return (
